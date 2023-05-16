@@ -9,12 +9,12 @@
 
 <div class={`fixed z-0` }>
     {#if innerWidth < 1200}
-        <img src="../src/assets/main-bg.png" alt="" class={``}>
-        <img src="../src/assets/main-bg.png" alt="" class={`absolute`}>
-        <img src="../src/assets/main-bg.png" alt="" class={`absolute mt-[220px]`}>
-        <img src="../src/assets/main-bg.png" alt="" class={`absolute mt-[440px]`}>
+        <img src="../main-bg.png" alt="" class={``}>
+        <img src="../main-bg.png" alt="" class={`absolute`}>
+        <img src="../main-bg.png" alt="" class={`absolute mt-[220px]`}>
+        <img src="../main-bg.png" alt="" class={`absolute mt-[440px]`}>
     {:else}
-        <img src="../src/assets/main-bg.png" alt="" class={``}>
+        <img src="../main-bg.png" alt="" class={``}>
     {/if}
 
 </div>

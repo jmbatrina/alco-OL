@@ -16,7 +16,7 @@
 	];
 
     function imagesource(dispenser) {
-        let source = "../src/assets/" + dispenser.status + "-" + dispenser.level + ".png";
+        let source = "../" + dispenser.status + "-" + dispenser.level + ".png";
         return source;
     }
 

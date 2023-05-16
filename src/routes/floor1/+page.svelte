@@ -2,18 +2,28 @@
     //get screen size
     $: innerWidth = 0;
     $: innerHeight = 0;
+</script>
 
-    let dispensers = [
-		{location: 'Working Dispenser', level: 'High', status: 'Active', floor:'1'},
-		{location: 'Room 105', level: 'Medium', status: 'Inactive', floor:'1'},
-		{location: 'CR Left', level: 'Low', status: 'Active', floor:'1'},
-        {location: 'Room 109', level: 'Medium', status: 'Active', floor:'1'},
-		{location: 'Room 114', level: 'High', status: 'Active', floor:'1'},
-		{location: 'CR Right', level: 'Low', status: 'Active', floor:'1'},
-        {location: 'Back Entrance', level: 'High', status: 'Active', floor:'1'},
-		{location: 'Room 120', level: 'Low', status: 'Inactive', floor:'1'},
-		{location: 'Room 127', level: 'Low', status: 'Active', floor:'1'},
-	];
+<script context="module">
+    import { deleteDoc, getDocs, query, where } from 'firebase/firestore/lite';
+    import { app, db, getDispenserLatestData, getLocations } from '../../Firebase';
+
+    let disp = await getDispenserLatestData(db);
+    console.log("Dispensers from getDispenserData");
+    console.log(disp);
+
+    let locations = await getLocations(db);
+    console.log("Locations from getLocations");
+    console.log(locations);
+
+    // translate raw data to strings
+    let dispensers = [];
+    const level = {1: 'Low', 2: 'Medium', 3: 'High'}
+    disp.forEach(dispenser => {
+        dispensers.push({ location: locations[dispenser.DispenserID], level: level[dispenser.Level], status: dispenser.isActive ? "Active" : "Inactive" });
+    });
+    console.log("Dispensers")
+    console.log(dispensers)
 
     //function for getting the source of the image
     function IMAGESOURCE(dispenser) {
@@ -28,6 +38,7 @@
     }
 
 </script>
+
 
 <!--get screen size-->
 <svelte:window bind:innerWidth bind:innerHeight />

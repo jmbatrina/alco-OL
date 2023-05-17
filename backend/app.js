@@ -10,7 +10,7 @@ const firebaseConfig = {
     messagingSenderId: "351940179755",
     appId: "1:351940179755:web:fe4ab8d6274c3c9e9a776e",
     measurementId: "G-3M8N12572Y" 
-  };
+  }; 
 
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
@@ -98,10 +98,10 @@ async function timeoutHandler(){
       const docId = doc.id.substring("Latest".length);
       const docTimestamp = doc.get("Timestamp");
       const docLevel = doc.get("Level");
-      const age = new Date(date - docTimestamp.toDate());
+      const docAge = new Date(date - docTimestamp.toDate());
 
       // if they have not logged for a while, log them as inactive
-      if (age > timeBeforeInactive){
+      if (docAge > timeBeforeInactive){
         updateDispenser(docId, docLevel, date, false);
         updateLatest(docId, docLevel, date, false);
         var log = `[${date.toLocaleTimeString()}] Dispenser ${docId} set to inactive.`

@@ -15,7 +15,7 @@
 		{location: 'Room 227', level: 'Low', status: 'Active' },
 	];
 
-    function imagesource(dispenser) {
+    function IMAGESOURCE(dispenser) {
         let source = "../" + dispenser.status + "-" + dispenser.level + ".png";
         return source;
     }
@@ -34,11 +34,10 @@
         {#each dispensers as dispenser}
         <li>
             <div class={`mt-10 hover:brightness-90 ${innerWidth > 700 ? 'mx-10' : ''} `}>
-            <img src={imagesource(dispenser)} alt="" class={`max-w-[350px] drop-shadow-lg ${innerWidth > 700 ? 'flex flex-wrap justify-center' : ''} `}>
-            <p class="absolute -mt-[90px] mx-16 font-bold text-lg">{dispenser.location}</p>
-            <p class="absolute -mt-[65px] mx-16">Level: {dispenser.level}</p>
-            <p class="absolute -mt-[40px] mx-16">Status: {dispenser.status}</p>
-            </div>
+            <img src={IMAGESOURCE(dispenser)} alt="" class={`max-w-[350px] drop-shadow-xl ${innerWidth > 700 ? 'flex flex-wrap justify-center' : ''} `}>
+            <p class="absolute -mt-[90px] mx-20 font-bold text-lg">{dispenser.location}</p>
+            <p class="absolute -mt-[65px] mx-20">Level: {dispenser.level}</p>
+            <p class="absolute -mt-[40px] mx-20">Status: {dispenser.status}</p>
         </li>
         {/each}
     </ul>

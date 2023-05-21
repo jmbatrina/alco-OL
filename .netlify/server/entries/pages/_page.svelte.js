@@ -14,8 +14,8 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
     "class",
     `mt-10 bg-white drop-shadow-lg rounded-2xl bg-opacity-80 ${innerWidth > 700 ? "min-w-[50%] max-h-[500px]" : "w-72 h-full py-8"}`,
     0
-  )}><div${add_attribute("class", `flex justify-center`, 0)}><div${add_attribute("class", `h-48 w-64 bg-white`, 0)}>logo</div></div>
-    <div${add_attribute("class", ` ${innerWidth > 700 ? "mt-[25%]" : ""} `, 0)}><h1${add_attribute("class", `text-4xl font-bold text-gray-800`, 0)}>TITLE</h1>
+  )}><div${add_attribute("class", `flex justify-center`, 0)}><div${add_attribute("class", `max-h-[400px] w-[600px]`, 0)}><img src="../logo.png" alt="" class=""></div></div>
+    <div><h1${add_attribute("class", `text-4xl font-bold text-gray-800`, 0)}>Alco-OL</h1>
         <h1${add_attribute("class", `text-xl font-bold text-gray-600`, 0)}>CS 145 System Series Project</h1>
         <h1${add_attribute("class", `text-s text-gray-600`, 0)}>details</h1></div></div>
 

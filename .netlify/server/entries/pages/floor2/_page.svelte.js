@@ -1,5 +1,5 @@
 import { c as create_ssr_component, b as add_attribute, f as each, e as escape } from "../../../chunks/index2.js";
-function imagesource(dispenser) {
+function IMAGESOURCE(dispenser) {
   let source = "../" + dispenser.status + "-" + dispenser.level + ".png";
   return source;
 }
@@ -59,11 +59,11 @@ const Page = create_ssr_component(($$result, $$props, $$bindings, slots) => {
 <body>
 <div class="min-h-screen w-screen absolute flex justify-center mt-20">
     <ul${add_attribute("class", `${innerWidth > 900 ? "flex flex-wrap justify-center" : ""} `, 0)}>${each(dispensers, (dispenser) => {
-    return `<li><div${add_attribute("class", `mt-10 hover:brightness-90 ${innerWidth > 700 ? "mx-10" : ""} `, 0)}><img${add_attribute("src", imagesource(dispenser), 0)} alt=""${add_attribute("class", `max-w-[350px] drop-shadow-lg ${innerWidth > 700 ? "flex flex-wrap justify-center" : ""} `, 0)}>
-            <p class="absolute -mt-[90px] mx-16 font-bold text-lg">${escape(dispenser.location)}</p>
-            <p class="absolute -mt-[65px] mx-16">Level: ${escape(dispenser.level)}</p>
-            <p class="absolute -mt-[40px] mx-16">Status: ${escape(dispenser.status)}</p></div>
-        </li>`;
+    return `<li><div${add_attribute("class", `mt-10 hover:brightness-90 ${innerWidth > 700 ? "mx-10" : ""} `, 0)}><img${add_attribute("src", IMAGESOURCE(dispenser), 0)} alt=""${add_attribute("class", `max-w-[350px] drop-shadow-xl ${innerWidth > 700 ? "flex flex-wrap justify-center" : ""} `, 0)}>
+            <p class="absolute -mt-[90px] mx-20 font-bold text-lg">${escape(dispenser.location)}</p>
+            <p class="absolute -mt-[65px] mx-20">Level: ${escape(dispenser.level)}</p>
+            <p class="absolute -mt-[40px] mx-20">Status: ${escape(dispenser.status)}</p>
+        </div></li>`;
   })}</ul></div></body>`;
 });
 export {

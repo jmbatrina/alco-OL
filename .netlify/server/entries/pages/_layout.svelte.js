@@ -8,7 +8,8 @@ const Navbar = create_ssr_component(($$result, $$props, $$bindings, slots) => {
   currentRoute = $page.url.pathname;
   $$unsubscribe_page();
   return `<nav class="bg-cyan w-screen h-20 font-bold shadow-xl z-20 absolute"><ul class=""><li class="flex">
-        <a href="/"${add_attribute("class", `bg-cyan-dark h-20 bg-opacity-0 hover:bg-opacity-100  ${currentRoute === "/" ? "bg-opacity-100" : "bg-opacity-0"}`, 0)}><h1 class="mt-6 mx-5 text-white text-2xl">alco-OL</h1></a>
+        <a href="/"${add_attribute("class", `bg-cyan-dark h-20 bg-opacity-0 hover:bg-opacity-100  ${currentRoute === "/" ? "bg-opacity-100" : "bg-opacity-0"}`, 0)}>
+        <img src="../logo.png" alt="" class="h-20"></a>
 
         
         <a href="/floor1"${add_attribute(

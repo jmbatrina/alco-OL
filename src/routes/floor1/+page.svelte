@@ -5,25 +5,9 @@
 </script>
 
 <script context="module">
-    import { deleteDoc, getDocs, query, where } from 'firebase/firestore/lite';
-    import { app, db, getDispenserLatestData, getLocations } from '../../Firebase';
+    import { app, db, getDispenserUIData } from '../../Firebase';
 
-    let disp = await getDispenserLatestData(db);
-    console.log("Dispensers from getDispenserData");
-    console.log(disp);
-
-    let locations = await getLocations(db);
-    console.log("Locations from getLocations");
-    console.log(locations);
-
-    // translate raw data to strings
-    let dispensers = [];
-    const level = {1: 'Low', 2: 'Medium', 3: 'High'}
-    disp.forEach(dispenser => {
-        dispensers.push({ location: locations[dispenser.DispenserID], level: level[dispenser.Level], status: dispenser.isActive ? "Active" : "Inactive" });
-    });
-    console.log("Dispensers")
-    console.log(dispensers)
+    let dispensers_promise = getDispenserUIData(app, db);
 
     //function for getting the source of the image
     function IMAGESOURCE(dispenser) {
@@ -49,6 +33,7 @@
     <!--group for slot-->
     <ul class={`${innerWidth > 900 ? 'flex flex-wrap justify-center' : ''} `}>
         <!--each slot-->
+        {#await dispensers_promise then dispensers}
         {#each dispensers as dispenser}
         <li>
             <a href={LOGNAME(dispenser)}>
@@ -61,6 +46,7 @@
             </a>
         </li>
         {/each}
+        {/await}
     </ul>
 
 </div>

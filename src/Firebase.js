@@ -51,8 +51,31 @@ async function getLocations(db) {
   return dispenserLocs;
 }
 
+
+async function getDispenserUIData(app, db) {
+    let disp = await getDispenserLatestData(db);
+    console.log("Dispensers from getDispenserData");
+    console.log(disp);
+
+    let locations = await getLocations(db);
+    console.log("Locations from getLocations");
+    console.log(locations);
+
+    // translate raw data to strings
+    let dispensers = [];
+    const level = {1: 'Low', 2: 'Medium', 3: 'High'}
+    disp.forEach(dispenser => {
+        dispensers.push({ location: locations[dispenser.DispenserID], level: level[dispenser.Level], status: dispenser.isActive ? "Active" : "Inactive" });
+    });
+    console.log("Dispensers")
+    console.log(dispensers)
+
+    return dispensers;
+}
+
+
 export {
-    app, db, getDispenserLatestData, getLocations
+    app, db, getDispenserLatestData, getLocations, getDispenserUIData
 }
 
 

@@ -21,7 +21,7 @@ const LatestDB = 'DispenserLatest';
 // Initialize Express
 import express from "express";
 const expressApp = express();
-const port = 5000;
+const port = process.env.PORT || 5000;
 expressApp.use(express.json());
 
 // Receives HTTP POST pushes from dispensers to log new information

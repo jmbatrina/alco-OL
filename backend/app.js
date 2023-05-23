@@ -19,10 +19,12 @@ const LocationDB = 'DispenserLocs';
 const LatestDB = 'DispenserLatest';
 
 // Initialize Express
+import cors from "cors";
 import express from "express";
 const expressApp = express();
 const port = process.env.PORT || 5000;
 expressApp.use(express.json());
+expressApp.use(cors())
 
 // Receives HTTP POST pushes from dispensers to log new information
 // receives json body with fields {DispenserID, Level}

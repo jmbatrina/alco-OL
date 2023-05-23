@@ -44,7 +44,7 @@ Apart from accepting information from the embedded systems, this server monitors
 
 This is done through a `Timeout handler` script that is scheduled to run every `30` minutes, which checks through active dispensers for those that have not sent data more than a set timeout period.
 
-### To be added
-- Firebase authentication and UI (modify the HTTP GET on "*" route for signup/logout page)
+### Room for improvement
+- Firebase authentication and UI (modify the HTTP GET on `"*"` route for signup/logout page (restricted to local)?)
 - Web gatewaying or tunneling, use actual ip instead of localhost
 - Multithread the Express listener and the Timeout? (Check for simultaneity bugs)

@@ -1,6 +1,6 @@
 // Initialize Firestore
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDoc, doc, setDoc, Timestamp, query, where, getDocs, updateDoc, runTransaction } from "firebase/firestore";
+import { getFirestore, collection, getDoc, doc, setDoc, Timestamp, query, where, getDocs } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBOlgzW7OB7HBijbNFnxQZsMVvXuVytjYU",
@@ -66,6 +66,10 @@ expressApp.post("/new", async (req, res) => {
     console.log(log);
     res.send(log);
 });
+
+
+console.log(`Server is running on http://localhost:${port}`);
+
 
 // Run the express app on port 5000
 expressApp.listen(port, () => {

@@ -33,6 +33,18 @@ const int LEVEL_HIGH_PIN = 14;
 // Delay to wait for the liquid level to properly "boot"
 const int levelBootDelay = 50;
 
+const int LED_LOW_PIN = 32;
+const int LED_MEDIUM_PIN = 35;
+const int LED_HIGH_PIN = 34;
+int levelLedPin = -1;   // pin of LED which should be enabled
+
+// The amount of time an LED stays on (2 seconds per cycle)
+const int ledOnDuration = 2*1000;
+// Amount of time before LED turns on again (3 seconds)
+const int ledOnInterval = 3*1000;
+const int ledCycleTime = ledOnDuration + ledOnInterval;
+int lastLedOnTime = 0;
+
 const int getCurrentLiquidLevel() {
   // Supply power to liquid level sensor, wait for proper "boot"
   digitalWrite(LEVEL_POWER_PIN, HIGH);
@@ -60,6 +72,29 @@ const int getCurrentLiquidLevel() {
   else                 return LEVEL_LOW;
 }
 
+const int getLedPinForLevel(const int level) {
+  int pin;
+  switch (level) {
+    case LEVEL_HIGH:
+      pin = LED_HIGH_PIN; break;
+    case LEVEL_MEDIUM:
+      pin = LED_MEDIUM_PIN; break;
+    case LEVEL_LOW:
+      pin = LED_LOW_PIN; break;
+    default:    // should normally not happend
+      pin = -1; // set to -1 to indicate error
+      break;
+  }
+
+  Serial.print("Liquid level:");
+  Serial.println(level);
+  Serial.print("Associated LED pin:");
+  Serial.println(pin);
+
+  return pin;
+}
+
+
 void setup() {
   pinMode(BUTTON_PIN, INPUT);
   pinMode(LEVEL_LOW_PIN, INPUT);
@@ -67,6 +102,9 @@ void setup() {
   pinMode(LEVEL_HIGH_PIN, INPUT);
 
   pinMode(LEVEL_POWER_PIN, OUTPUT);
+  pinMode(LED_LOW_PIN, OUTPUT);
+  pinMode(LED_MEDIUM_PIN, OUTPUT);
+  pinMode(LED_HIGH_PIN, OUTPUT);
 
   Serial.begin(115200);
 
@@ -84,6 +122,21 @@ void setup() {
 
 void loop() {
   const unsigned long now = millis();
+
+  // check if LED light needs to be updated
+  // NOTE: LED pin can be -1 if liquid level can not be properly determined
+  if (levelLedPin != -1) {
+    const PinStatus currLedState = digitalRead(levelLedPin);
+    if (currLedState == LOW && (now - lastLedOnTime) >= ledCycleTime) {
+      // Start next LED cycle, turn on LED
+      digitalWrite(levelLedPin, HIGH);
+      lastLedOnTime = now;
+    } else if (currLedState == HIGH && (now - lastLedOnTime) >= ledOnDuration) {
+      // LED already active for alloted time, turn off until next LED cycle
+      digitalWrite(levelLedPin, LOW);
+    }
+  }
+
   if ((now - lastButtonCheckTime) >= buttonCheckInterval) {
     PinStatus currButtonState = digitalRead(BUTTON_PIN);
     if (lastButtonState == LOW &&  currButtonState == HIGH) {   // Rising edge
@@ -106,7 +159,18 @@ void loop() {
       http.begin(serverPath.c_str());
       http.addHeader("Content-Type", "application/json");   // POST payload is JSON
 
+      // update current liquid level
       const int currLiquidLevel = getCurrentLiquidLevel();
+
+      const int newLedPin = getLedPinForLevel(currLiquidLevel);
+      if (newLedPin != levelLedPin) {
+        // level changed, switch pin and immediately start new LED cycle
+        if (levelLedPin != -1) digitalWrite(levelLedPin, LOW);   // turn old LED off
+        if (newLedPin != -1)   digitalWrite(newLedPin, HIGH);    // turn new LED on
+
+        lastLedOnTime = now;
+        levelLedPin = newLedPin;
+      }
 
       JSONVar dispenserStatus;
       dispenserStatus["DispenserID"] = DISPENSER_ID;

@@ -20,7 +20,9 @@ PinStatus lastButtonState = 0;
 unsigned long lastButtonCheckTime = 0;
 // Only check button state every 200ms
 unsigned long buttonCheckInterval = 100;
-bool isPostRequested = false;
+// isPostRequested is set to true when we want to send data even before timer expires
+// initialized to true so that liquid level is taken and POST is sent at system boot
+bool isPostRequested = true;
 
 const int LEVEL_LOW = 0;
 const int LEVEL_MEDIUM = 1;

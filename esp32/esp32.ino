@@ -26,14 +26,25 @@ const int LEVEL_LOW = 0;
 const int LEVEL_MEDIUM = 1;
 const int LEVEL_HIGH = 2;
 
+const int LEVEL_POWER_PIN = 27;
 const int LEVEL_LOW_PIN = 13;
 const int LEVEL_MEDIUM_PIN = 12;
 const int LEVEL_HIGH_PIN = 14;
+// Delay to wait for the liquid level to properly "boot"
+const int levelBootDelay = 50;
 
 const int getCurrentLiquidLevel() {
+  // Supply power to liquid level sensor, wait for proper "boot"
+  digitalWrite(LEVEL_POWER_PIN, HIGH);
+  delay(levelBootDelay);
+
+  // Get readings for each level output pin
   const PinStatus LOW_VAL = digitalRead(LEVEL_LOW_PIN);
   const PinStatus MEDIUM_VAL = digitalRead(LEVEL_MEDIUM_PIN);
   const PinStatus HIGH_VAL = digitalRead(LEVEL_HIGH_PIN);
+
+  // Cut power to liquid level sensor to minimize corrosion of probes
+  digitalWrite(LEVEL_POWER_PIN, LOW);
 
   // DEBUG: print probe readings
   Serial.println("");
@@ -54,6 +65,8 @@ void setup() {
   pinMode(LEVEL_LOW_PIN, INPUT);
   pinMode(LEVEL_MEDIUM_PIN, INPUT);
   pinMode(LEVEL_HIGH_PIN, INPUT);
+
+  pinMode(LEVEL_POWER_PIN, OUTPUT);
 
   Serial.begin(115200);
 
@@ -84,7 +97,7 @@ void loop() {
 
   if ((now - lastPostTime) >= postInterval || isPostRequested) {
     // Check WiFi connection status
-    if(WiFi.status() != WL_CONNECTED) {
+    if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi Disconnected");
     } else {
       HTTPClient http;
@@ -93,9 +106,11 @@ void loop() {
       http.begin(serverPath.c_str());
       http.addHeader("Content-Type", "application/json");   // POST payload is JSON
 
+      const int currLiquidLevel = getCurrentLiquidLevel();
+
       JSONVar dispenserStatus;
       dispenserStatus["DispenserID"] = DISPENSER_ID;
-      dispenserStatus["Level"] = getCurrentLiquidLevel();
+      dispenserStatus["Level"] =  currLiquidLevel;
 
       String httpRequestData = JSON.stringify(dispenserStatus);
       int httpResponseCode = http.POST(httpRequestData);

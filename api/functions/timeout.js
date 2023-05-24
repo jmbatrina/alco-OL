@@ -11,5 +11,11 @@ const handler = async (event,context)=>{
     await timeoutHandler(timeBeforeInactive);
 }
 
+const interval = "0/30 * * * *"// 30 minute interval
+
+// Alt values for testing:
+//const interval = "0/2 * * * *"// 2 minute interval
+//const interval = "0 0 1 * *" // 1 month interval
+
 // schedule the timeoutHandler to run every 30 minutes
-exports.handler = schedule("0/30 * * * *", handler);
+exports.handler = schedule(interval, handler);

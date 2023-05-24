@@ -38,17 +38,41 @@ You can preview the production build with `npm run preview`.
 > To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
 
 ---
-# Dispensers Backend Data Server
+# Arduino Data Server for Alco-OL
 
-The API gateway for dispenser POST-ing should already be up at
+A backend server that handles the reception of the data collected from the embedded systems (or dispensers) of the Alco-OL project.
 
+The API gateway for dispenser POST-ing should already be up at:
 `https://alco-ol-backend.netlify.app/.netlify/functions/api/`
 
-Routes:
-1. POST to `/data`:
-```https://alco-ol-backend.netlify.app/.netlify/functions/api/data```
-2. POST to `/new`:
-```https://alco-ol-backend.netlify.app/.netlify/functions/api/new```
+API Routes:
+### 1. POST to `/data`:
+Receives `HTTP POST` pushes from dispensers to log new information.
+
+Route: `https://alco-ol-backend.netlify.app/.netlify/functions/api/data`
+Request body:
+```
+JSON {
+    DispenserID: <string>,
+    Level:<int>
+}
+```
+
+### 2. POST to `/new`:
+Receives `HTTP POST` pushes from unregistered dispensers to log new information or overwrite existing information about a dispenser.
+
+Route: `https://alco-ol-backend.netlify.app/.netlify/functions/api/new`
+Request body:
+```
+JSON {
+    DispenserID: <string>,
+    Level:<int>
+    Location: <string>,
+    Floor: <int>,
+}
+```
+## Timeout Handler
+Apart from accepting information from the embedded systems, this server monitors the activity of the dispensers, and automatically logs inactive dispensers.
 
 ## Rebuilding the Data Server
 
@@ -58,7 +82,7 @@ To get a local build of the backend:
 npm run build_backend
 ```
 
-To (re)deploy and update the current backend data to the live site:
+To deploy and update the current backend data to the live site (use this to suspend/modify the scheduled timeout handler):
 
 ```bash
 npm run deploy_backend

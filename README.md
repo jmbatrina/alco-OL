@@ -41,7 +41,14 @@ You can preview the production build with `npm run preview`.
 # Dispensers Backend Data Server
 
 The API gateway for dispenser POST-ing should already be up at
+
 `https://alco-ol-backend.netlify.app/.netlify/functions/api/`
+
+Routes:
+1. POST to `/data`:
+```https://alco-ol-backend.netlify.app/.netlify/functions/api/data```
+2. POST to `/new`:
+```https://alco-ol-backend.netlify.app/.netlify/functions/api/new```
 
 ## Rebuilding the Data Server
 

@@ -36,3 +36,23 @@ npm run build
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+
+---
+# Dispensers Backend Data Server
+
+The API gateway for dispenser POST-ing should already be up at
+`https://alco-ol-backend.netlify.app/.netlify/functions/api/`
+
+## Rebuilding the Data Server
+
+To get a local build of the backend:
+
+```bash
+npm run build_backend
+```
+
+To (re)deploy and update the current backend data to the live site:
+
+```bash
+npm run deploy_backend
+```

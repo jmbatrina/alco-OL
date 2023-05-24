@@ -1,0 +1,4 @@
+[build]
+  functions = "api\\functions"
+  publish = "api\\dist"
+  

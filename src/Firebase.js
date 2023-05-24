@@ -20,13 +20,16 @@ const DispenserLocationCol = 'DispenserLocs';
 // Name of Dispenser Latest Values Collection
 const DispenserLatestCol = 'DispenserLatest';
 
+const LatestDocPrefix = "Latest";
+const LocationDocPrefix = "Loc-";
+
 const db = getFirestore(app);
 // Get a list of cities from your database
 async function getDispenserLatestData(db) {
   const dispenserCol = collection(db, DispenserLatestCol);
   const dispenserSnapshot = await getDocs(dispenserCol);
 
-  const idStart = "Latest".length;
+  const idStart = LatestDocPrefix.length;
   const dispenserList = dispenserSnapshot.docs.map(doc => {
     let data = doc.data();
     data["DispenserID"] = doc.id.substring(idStart);
@@ -42,10 +45,10 @@ async function getLocations(db) {
   const locSnapshot = await getDocs(locCol);
   let dispenserLocs = {}
 
-  const idStart = "Loc-".length;
+  const idStart = LocationDocPrefix.length;
   locSnapshot.docs.forEach(doc => {
     const dispenserID = doc.id.substring(idStart);
-    dispenserLocs[dispenserID] = doc.data().Location;
+    dispenserLocs[dispenserID] = doc.data();
   });
 
   return dispenserLocs;
@@ -65,7 +68,9 @@ async function getDispenserUIData(app, db) {
     let dispensers = [];
     const level = {1: 'Low', 2: 'Medium', 3: 'High'}
     disp.forEach(dispenser => {
-        dispensers.push({ location: locations[dispenser.DispenserID], level: level[dispenser.Level], status: dispenser.isActive ? "Active" : "Inactive" });
+        const { Location, Floor } = locations[dispenser.DispenserID];
+        dispensers.push({ location: Location, floor: Floor,level: level[dispenser.Level],
+                          status: dispenser.isActive ? "Active" : "Inactive" });
     });
     console.log("Dispensers")
     console.log(dispensers)

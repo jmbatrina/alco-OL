@@ -135,7 +135,9 @@ async function getDispenserLogs(app, db, dispenserID) {
   });
 
   // logs are shown in reverse chronological order (most recent first)
-  return logs.toReversed();
+  // NOTE: we can't use toReversed() since firefox does not support it yet
+  logs.reverse();
+  return logs;
 }
 
 

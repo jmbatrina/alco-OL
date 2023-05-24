@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, onSnapshot } from 'firebase/firestore';
+import { getFirestore, collection, doc, getDoc, getDocs, onSnapshot, query, where } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBOlgzW7OB7HBijbNFnxQZsMVvXuVytjYU",
@@ -78,9 +78,69 @@ async function getDispenserUIData(app, db) {
     return dispensers;
 }
 
+async function getDispenserLogs(app, db, dispenserID) {
+  const dispenserCol = collection(db, DispenserCol);
+  // Get all logs for the unit corresponding to dispenserID
+  const dispenserLogCols = query(dispenserCol, where("DispenserID", "==", dispenserID));
+  const logSnapshots = await getDocs(dispenserLogCols);
+  let logData = logSnapshots.docs.map((doc) => doc.data());
+
+  // NOTE: since latest data is not in log yet, we manually add it
+  const latestDocName = LatestDocPrefix + dispenserID;
+  const currDataSnapshot = await getDoc(doc(db, DispenserLatestCol, latestDocName));
+  logData.push(currDataSnapshot.data());
+
+  // Sort logs in chronological order (increasing date)
+  logData.sort((logA, logB) => (logA.Timestamp - logB.Timestamp));
+
+  // translate raw data to strings; construct corresponding message
+  let logs = [];
+  let prevLevel = -1;
+  let isPrevInactive = false;
+  logData.forEach((log) => {
+    // TODO: simplify timestamp representation (currently contains too much information)
+    const timestamp = log.Timestamp.toDate();
+    let logEntry = { DispenserID: log.DispenserID, level: log.Level, status: log.isActive ? "Active" : "Inactive", timestamp: timestamp};
+    // TODO: get actual location from database. Hardcoded for now to minimize firestore reads
+    logEntry["location"] = "Working Dispenser";
+
+    let message = "";
+    if (logEntry.status == "Inactive") {
+      // TODO: use more informative error message
+      message = "Unit is Inactive";
+      isPrevInactive = true;
+      prevLevel = -1;
+    } else {
+      if (isPrevInactive) {
+        message = "Unit Reactivated. ";
+        isPrevInactive = false;
+      }
+
+      const level = {1: 'Low', 2: 'Medium', 3: 'High'}
+      // TODO: use more informative log messages
+      if (log.Level < prevLevel) {
+        message += "Dropped to ";
+      } else if (prevLevel != -1 && log.Level > prevLevel) {
+        message += "Refilled to ";
+      } else {
+        message += "Alcohol is at ";
+      }
+
+      message += (level[log.Level] ?? "UNKNOWN") + " Level";
+      prevLevel = log.Level;
+    }
+
+    logEntry["message"] = message;
+    logs.push(logEntry);
+  });
+
+  // logs are shown in reverse chronological order (most recent first)
+  return logs.toReversed();
+}
+
 
 export {
-    app, db, getDispenserLatestData, getLocations, getDispenserUIData
+    app, db, getDispenserLatestData, getLocations, getDispenserUIData, getDispenserLogs
 }
 
 

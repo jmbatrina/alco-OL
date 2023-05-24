@@ -3,17 +3,6 @@
     $: innerWidth = 0;
     $: innerHeight = 0;
 
-    let logs = [
-		{location: 'Working Dispenser', level: 'High', status: 'Active', floor:'1', timestamp:'[2012-12-20 12:00:00]', message: 'Dropped to Medium level'},
-        {location: 'Working Dispenser', level: 'High', status: 'Active', floor:'1', timestamp:'[2012-12-20 12:00:00]', message: 'Dropped to Medium level'},
-        {location: 'Working Dispenser', level: 'High', status: 'Active', floor:'1', timestamp:'[2012-12-20 12:00:00]', message: 'Dropped to Medium level'},
-        {location: 'Working Dispenser', level: 'High', status: 'Active', floor:'1', timestamp:'[2012-12-20 12:00:00]', message: 'Dropped to Medium level'},
-        {location: 'Working Dispenser', level: 'High', status: 'Active', floor:'1', timestamp:'[2012-12-20 12:00:00]', message: 'Dropped to Medium level'},
-        {location: 'Working Dispenser', level: 'High', status: 'Active', floor:'1', timestamp:'[2012-12-20 12:00:00]', message: 'Dropped to Medium level'},
-        {location: 'Working Dispenser', level: 'High', status: 'Active', floor:'1', timestamp:'[2012-12-20 12:00:00]', message: 'Dropped to Medium level'},
-        {location: 'Working Dispenser', level: 'High', status: 'Active', floor:'1', timestamp:'[2012-12-20 12:00:00]', message: 'Dropped to Medium level'},
-    ]
-
     //function for the output log in PC
     function PCLOG(log) {
         let source = log.timestamp + "    " + log.message;
@@ -22,11 +11,20 @@
 
 </script>
 
+<script context="module">
+    import { app, db, getDispenserLogs } from '../../../Firebase';
+
+    // TODO: Get DispenserID when user clicks on dispenser status instead of hardcoding
+    const dispenserID = 1;
+    let logs_promise = getDispenserLogs(app, db, dispenserID);
+</script>
+
 <!--get screen size-->
 <svelte:window bind:innerWidth bind:innerHeight />
 
 <div class="flex justify-center text-center">
 <div class="absolute mt-24">
+    {#await logs_promise then logs}
     <!--Title History Log-->
     <h1 class="text-4xl font-bold text-gray-800">{logs[0].location} History Log</h1>
     <div class="flex justify-center">
@@ -51,6 +49,7 @@
         <h1 class="my-6 text-lg font-bold text-gray-800">First Log</h1>
     </div>
     </div>
+    {/await}
 </div>
 </div>
 

@@ -1,5 +1,6 @@
 #include <Arduino_JSON.h>
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 
 #define PinStatus int
@@ -8,7 +9,31 @@ const int DISPENSER_ID = 1;
 
 const char* ssid = "alco-OL";
 const char* password = "stayhydrated145";
-String serverName = "http://192.168.10.20:5000";    // NOTE: always update this when (re)connecting to WiFi
+
+String serverName = "https://alco-ol-backend.netlify.app/.netlify/functions/api";
+const char* rootCACertificate = \
+"-----BEGIN CERTIFICATE-----\n" \
+"MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh\n" \
+"MQswCQYDVQQGEwJVUzEVMBMGA1UEChMMRGlnaUNlcnQgSW5jMRkwFwYDVQQLExB3\n" \
+"d3cuZGlnaWNlcnQuY29tMSAwHgYDVQQDExdEaWdpQ2VydCBHbG9iYWwgUm9vdCBD\n" \
+"QTAeFw0wNjExMTAwMDAwMDBaFw0zMTExMTAwMDAwMDBaMGExCzAJBgNVBAYTAlVT\n" \
+"MRUwEwYDVQQKEwxEaWdpQ2VydCBJbmMxGTAXBgNVBAsTEHd3dy5kaWdpY2VydC5j\n" \
+"b20xIDAeBgNVBAMTF0RpZ2lDZXJ0IEdsb2JhbCBSb290IENBMIIBIjANBgkqhkiG\n" \
+"9w0BAQEFAAOCAQ8AMIIBCgKCAQEA4jvhEXLeqKTTo1eqUKKPC3eQyaKl7hLOllsB\n" \
+"CSDMAZOnTjC3U/dDxGkAV53ijSLdhwZAAIEJzs4bg7/fzTtxRuLWZscFs3YnFo97\n" \
+"nh6Vfe63SKMI2tavegw5BmV/Sl0fvBf4q77uKNd0f3p4mVmFaG5cIzJLv07A6Fpt\n" \
+"43C/dxC//AH2hdmoRBBYMql1GNXRor5H4idq9Joz+EkIYIvUX7Q6hL+hqkpMfT7P\n" \
+"T19sdl6gSzeRntwi5m3OFBqOasv+zbMUZBfHWymeMr/y7vrTC0LUq7dBMtoM1O/4\n" \
+"gdW7jVg/tRvoSSiicNoxBN33shbyTApOB6jtSj1etX+jkMOvJwIDAQABo2MwYTAO\n" \
+"BgNVHQ8BAf8EBAMCAYYwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUA95QNVbR\n" \
+"TLtm8KPiGxvDl7I90VUwHwYDVR0jBBgwFoAUA95QNVbRTLtm8KPiGxvDl7I90VUw\n" \
+"DQYJKoZIhvcNAQEFBQADggEBAMucN6pIExIK+t1EnE9SsPTfrgT1eXkIoyQY/Esr\n" \
+"hMAtudXH/vTBH1jLuG2cenTnmCmrEbXjcKChzUyImZOMkXDiqw8cvpOp/2PV5Adg\n" \
+"06O/nVsJ8dWO41P0jmP6P6fbtGbfYmbW0W5BjfIttep3Sp+dWOIrWcBAI+0tKIJF\n" \
+"PnlUkiaY4IBIqDfv8NZ5YBberOgOzW6sRBc4L0na4UU+Krk2U886UAb3LujEV0ls\n" \
+"YSEY1QSteDwsOoBrp+uvFRTp2InBuThs4pFsiv9kuXclVzDAGySj4dzp30d8tbQk\n" \
+"CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=\n" \
+"-----END CERTIFICATE-----\n";
 
 unsigned long lastPostTime = 0;
 // Set timer to 5 seconds (5000) for debugging
@@ -170,54 +195,60 @@ void loop() {
   if ((now - lastPostTime) >= postInterval || isPostRequested) {
     // Check WiFi connection status
     if (WiFi.status() != WL_CONNECTED) {
-      Serial.println("WiFi Disconnected");
+      Serial.println("WiFi Disconnected.");
     } else {
-      HTTPClient http;
-      String serverPath = serverName + "/data";
+      WiFiClientSecure *client = new WiFiClientSecure;
+      if (!client) {
+        Serial.println("Cannot establish secure connection.");
+      } else {
+        client->setCACert(rootCACertificate);
+        HTTPClient http;
+        String serverPath = serverName + "/data";
 
-      http.begin(serverPath.c_str());
-      http.addHeader("Content-Type", "application/json");   // POST payload is JSON
+        http.begin(*client, serverPath.c_str());
+        http.addHeader("Content-Type", "application/json");   // POST payload is JSON
 
-      // update current liquid level
-      const int currLiquidLevel = getCurrentLiquidLevel();
+        // update current liquid level
+        const int currLiquidLevel = getCurrentLiquidLevel();
 
-      const int newLedPin = getLedPinForLevel(currLiquidLevel);
-      if (newLedPin != levelLedPin) {
-        // level changed, switch pin and immediately start new LED cycle
-        if (levelLedPin != -1) digitalWrite(levelLedPin, LOW);   // turn old LED off
-        if (newLedPin != -1)   digitalWrite(newLedPin, HIGH);    // turn new LED on
+        const int newLedPin = getLedPinForLevel(currLiquidLevel);
+        if (newLedPin != levelLedPin) {
+          // level changed, switch pin and immediately start new LED cycle
+          if (levelLedPin != -1) digitalWrite(levelLedPin, LOW);   // turn old LED off
+          if (newLedPin != -1)   digitalWrite(newLedPin, HIGH);    // turn new LED on
 
-        lastLedOnTime = now;
-        levelLedPin = newLedPin;
+          lastLedOnTime = now;
+          levelLedPin = newLedPin;
+        }
+
+        // NOTE: at this point, currLiquidLevel can be -1, but we still always send POST
+        //       so that a) error will be visible in logs without needing to wait for timeout,
+        //       and b) this error will be distinguishable to "battery/power ran out" case
+        JSONVar dispenserStatus;
+        dispenserStatus["DispenserID"] = DISPENSER_ID;
+        dispenserStatus["Level"] =  currLiquidLevel;
+
+        String httpRequestData = JSON.stringify(dispenserStatus);
+        Serial.println(httpRequestData);
+
+        int httpResponseCode = http.POST(httpRequestData);
+
+        if (httpResponseCode > 0) {
+          Serial.print("HTTP Response code: ");
+          Serial.println(httpResponseCode);
+          String payload = http.getString();
+          Serial.println(payload);
+        }
+        else {
+          Serial.print("Error code: ");
+          Serial.println(httpResponseCode);
+        }
+
+        http.end();   // Free resources
+
+        lastPostTime = millis();
+        isPostRequested = false;
       }
-
-      // NOTE: at this point, currLiquidLevel can be -1, but we still always send POST
-      //       so that a) error will be visible in logs without needing to wait for timeout,
-      //       and b) this error will be distinguishable to "battery/power ran out" case
-      JSONVar dispenserStatus;
-      dispenserStatus["DispenserID"] = DISPENSER_ID;
-      dispenserStatus["Level"] =  currLiquidLevel;
-
-      String httpRequestData = JSON.stringify(dispenserStatus);
-      Serial.println(httpRequestData);
-
-      int httpResponseCode = http.POST(httpRequestData);
-
-      if (httpResponseCode > 0) {
-        Serial.print("HTTP Response code: ");
-        Serial.println(httpResponseCode);
-        String payload = http.getString();
-        Serial.println(payload);
-      }
-      else {
-        Serial.print("Error code: ");
-        Serial.println(httpResponseCode);
-      }
-
-      http.end();   // Free resources
-
-      lastPostTime = millis();
-      isPostRequested = false;
     }
 
     Serial.println("");

@@ -1,7 +1,13 @@
+// Comment out the symbolic Macro below if running on ESP32
+// #define ARDUINO_MODE
+
 #include <Arduino_JSON.h>
+
+#ifndef ARDUINO_MODE
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
+#endif
 
 #define PinStatus int
 
@@ -54,16 +60,29 @@ const int LEVEL_LOW = 1;
 const int LEVEL_MEDIUM = 2;
 const int LEVEL_HIGH = 3;
 
+#ifndef ARDUINO_MODE
 const int LEVEL_GND_PIN = 33;
 const int LEVEL_LOW_PIN = 18;
 const int LEVEL_MEDIUM_PIN = 19;
 const int LEVEL_HIGH_PIN = 21;
+#else
+const int LEVEL_GND_PIN = 13;
+const int LEVEL_LOW_PIN = 8;
+const int LEVEL_MEDIUM_PIN = 9;
+const int LEVEL_HIGH_PIN = 10;
+#endif
 // Delay to wait for the liquid level to properly "boot"
 const int levelBootDelay = 50;
 
+#ifndef ARDUINO_MODE
 const int LED_LOW_PIN = 13;
 const int LED_MEDIUM_PIN = 12;
 const int LED_HIGH_PIN = 14;
+#else
+const int LED_LOW_PIN = 5;
+const int LED_MEDIUM_PIN = 6;
+const int LED_HIGH_PIN = 7;
+#endif
 unsigned long levelLedPin = -1;   // pin of LED which should be enabled
 
 // The amount of time an LED stays on (3 seconds per cycle)
@@ -152,6 +171,7 @@ void setup() {
 
   Serial.begin(115200);
 
+#ifndef ARDUINO_MODE
   WiFi.begin(ssid, password);
   Serial.print("Connecting to ");
   Serial.print(ssid);
@@ -162,6 +182,9 @@ void setup() {
   Serial.println("");
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
+#else
+  Serial.println("ARDUINO_MODE macro defined, running on Debug mode. No HTTP POSTs will be sent.");
+#endif
 }
 
 void loop() {
@@ -193,6 +216,7 @@ void loop() {
   }
 
   if ((now - lastPostTime) >= postInterval || isPostRequested) {
+#ifndef ARDUINO_MODE
     // Check WiFi connection status
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi Disconnected.");
@@ -207,6 +231,7 @@ void loop() {
 
         http.begin(*client, serverPath.c_str());
         http.addHeader("Content-Type", "application/json");   // POST payload is JSON
+#endif
 
         // update current liquid level
         const int currLiquidLevel = getCurrentLiquidLevel();
@@ -231,6 +256,7 @@ void loop() {
         String httpRequestData = JSON.stringify(dispenserStatus);
         Serial.println(httpRequestData);
 
+#ifndef ARDUINO_MODE
         int httpResponseCode = http.POST(httpRequestData);
 
         if (httpResponseCode > 0) {
@@ -245,11 +271,14 @@ void loop() {
         }
 
         http.end();   // Free resources
+#endif
 
         lastPostTime = millis();
         isPostRequested = false;
+#ifndef ARDUINO_MODE
       }
     }
+#endif
 
     Serial.println("");
   }

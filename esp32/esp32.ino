@@ -28,16 +28,16 @@ const int LEVEL_LOW = 0;
 const int LEVEL_MEDIUM = 1;
 const int LEVEL_HIGH = 2;
 
-const int LEVEL_POWER_PIN = 27;
-const int LEVEL_LOW_PIN = 13;
-const int LEVEL_MEDIUM_PIN = 12;
-const int LEVEL_HIGH_PIN = 14;
+const int LEVEL_POWER_PIN = 33;
+const int LEVEL_LOW_PIN = 18;
+const int LEVEL_MEDIUM_PIN = 19;
+const int LEVEL_HIGH_PIN = 21;
 // Delay to wait for the liquid level to properly "boot"
 const int levelBootDelay = 50;
 
-const int LED_LOW_PIN = 32;
-const int LED_MEDIUM_PIN = 35;
-const int LED_HIGH_PIN = 34;
+const int LED_LOW_PIN = 13;
+const int LED_MEDIUM_PIN = 12;
+const int LED_HIGH_PIN = 14;
 unsigned long levelLedPin = -1;   // pin of LED which should be enabled
 
 // The amount of time an LED stays on (3 seconds per cycle)

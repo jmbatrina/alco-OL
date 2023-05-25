@@ -38,10 +38,10 @@ const int levelBootDelay = 50;
 const int LED_LOW_PIN = 32;
 const int LED_MEDIUM_PIN = 35;
 const int LED_HIGH_PIN = 34;
-int levelLedPin = -1;   // pin of LED which should be enabled
+unsigned long levelLedPin = -1;   // pin of LED which should be enabled
 
-// The amount of time an LED stays on (2 seconds per cycle)
-const int ledOnDuration = 2*1000;
+// The amount of time an LED stays on (3 seconds per cycle)
+const int ledOnDuration = 3*1000;
 // Amount of time before LED turns on again (3 seconds)
 const int ledOnInterval = 3*1000;
 const int ledCycleTime = ledOnDuration + ledOnInterval;
@@ -194,6 +194,8 @@ void loop() {
       dispenserStatus["Level"] =  currLiquidLevel;
 
       String httpRequestData = JSON.stringify(dispenserStatus);
+      Serial.println(httpRequestData);
+
       int httpResponseCode = http.POST(httpRequestData);
 
       if (httpResponseCode > 0) {

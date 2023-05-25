@@ -4,15 +4,16 @@
 
 #define PinStatus int
 
-const int DISPENSER_ID = 2;
+const int DISPENSER_ID = 1;
 
 const char* ssid = "alco-OL";
 const char* password = "stayhydrated145";
 String serverName = "http://192.168.10.20:5000";    // NOTE: always update this when (re)connecting to WiFi
 
 unsigned long lastPostTime = 0;
-// Set timer to 10 seconds (10000)
-unsigned long postInterval = 10*1000;
+// Set timer to 5 seconds (5000) for debugging
+// TODO: Set to actual interval for deployment (e.g. 10 minutes)
+unsigned long postInterval = 5*1000;
 
 // NOTE: Pin 0 is connected to "Boot" button in ESP32
 const int BUTTON_PIN = 0;
@@ -24,9 +25,9 @@ unsigned long buttonCheckInterval = 100;
 // initialized to true so that liquid level is taken and POST is sent at system boot
 bool isPostRequested = true;
 
-const int LEVEL_LOW = 0;
-const int LEVEL_MEDIUM = 1;
-const int LEVEL_HIGH = 2;
+const int LEVEL_LOW = 1;
+const int LEVEL_MEDIUM = 2;
+const int LEVEL_HIGH = 3;
 
 const int LEVEL_GND_PIN = 33;
 const int LEVEL_LOW_PIN = 18;

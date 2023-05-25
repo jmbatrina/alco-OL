@@ -53,9 +53,11 @@ const int getCurrentLiquidLevel() {
   delay(levelBootDelay);
 
   // Get readings for each level output pin
-  const PinStatus LOW_VAL = digitalRead(LEVEL_LOW_PIN);
-  const PinStatus MEDIUM_VAL = digitalRead(LEVEL_MEDIUM_PIN);
-  const PinStatus HIGH_VAL = digitalRead(LEVEL_HIGH_PIN);
+  // NOTE: For some unknown reason, the readings are inverted, so we invert the outputs
+  //       e.g. if none of the probes are in contact, all have a reading of 1 instead of 0
+  const PinStatus LOW_VAL = !digitalRead(LEVEL_LOW_PIN);
+  const PinStatus MEDIUM_VAL = !digitalRead(LEVEL_MEDIUM_PIN);
+  const PinStatus HIGH_VAL = !digitalRead(LEVEL_HIGH_PIN);
 
   // Cut power to liquid level sensor to minimize corrosion of probes
   digitalWrite(LEVEL_POWER_PIN, LOW);

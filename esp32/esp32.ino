@@ -28,7 +28,7 @@ const int LEVEL_LOW = 0;
 const int LEVEL_MEDIUM = 1;
 const int LEVEL_HIGH = 2;
 
-const int LEVEL_POWER_PIN = 33;
+const int LEVEL_GND_PIN = 33;
 const int LEVEL_LOW_PIN = 18;
 const int LEVEL_MEDIUM_PIN = 19;
 const int LEVEL_HIGH_PIN = 21;
@@ -49,7 +49,8 @@ int lastLedOnTime = 0;
 
 const int getCurrentLiquidLevel() {
   // Supply power to liquid level sensor, wait for proper "boot"
-  digitalWrite(LEVEL_POWER_PIN, HIGH);
+  // NOTE: Since we are controlling the ground pin, we must set it to LOW for power to flow
+  digitalWrite(LEVEL_GND_PIN, LOW);
   delay(levelBootDelay);
 
   // Get readings for each level output pin
@@ -60,7 +61,8 @@ const int getCurrentLiquidLevel() {
   const PinStatus HIGH_VAL = !digitalRead(LEVEL_HIGH_PIN);
 
   // Cut power to liquid level sensor to minimize corrosion of probes
-  digitalWrite(LEVEL_POWER_PIN, LOW);
+  // NOTE: Liquid level sensor's VCC is connected to +5V; driving GND pin to HIGH cuts power
+  digitalWrite(LEVEL_GND_PIN, HIGH);
 
   // DEBUG: print probe readings
   Serial.println("");
@@ -117,7 +119,7 @@ void setup() {
   pinMode(LEVEL_MEDIUM_PIN, INPUT);
   pinMode(LEVEL_HIGH_PIN, INPUT);
 
-  pinMode(LEVEL_POWER_PIN, OUTPUT);
+  pinMode(LEVEL_GND_PIN, OUTPUT);
   pinMode(LED_LOW_PIN, OUTPUT);
   pinMode(LED_MEDIUM_PIN, OUTPUT);
   pinMode(LED_HIGH_PIN, OUTPUT);

@@ -26,6 +26,11 @@
         <h1 class="mt-6 mx-5 text-white text-2xl">F2</h1>
         </a>
 
+        <!--MAPS-->
+        <a href="/mapPage" class={`bg-cyan-dark h-20 bg-opacity-0 hover:bg-opacity-100  ${currentRoute === '/mapPage' ? 'bg-opacity-100' : 'bg-opacity-0'}`}>
+            <h1 class="mt-6 mx-5 text-white text-2xl">MAPS</h1>
+        </a>
+
     </li>
     </ul>
     

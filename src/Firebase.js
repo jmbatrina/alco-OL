@@ -69,7 +69,7 @@ async function getDispenserUIData(app, db) {
     const level = {1: 'Low', 2: 'Medium', 3: 'High'}
     disp.forEach(dispenser => {
         const { Location, Floor } = locations[dispenser.DispenserID];
-        dispensers.push({ location: Location, floor: Floor,level: level[dispenser.Level],
+        dispensers.push({ id: dispenser.DispenserID,location: Location, floor: Floor,level: level[dispenser.Level],
                           status: dispenser.isActive ? "Active" : "Inactive" });
     });
     console.log("Dispensers")

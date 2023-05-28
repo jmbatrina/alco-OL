@@ -2,9 +2,9 @@
     //get screen size
     $: innerWidth = 0;
     $: innerHeight = 0;
-</script>
 
-<script context="module">
+    import {globalID} from "../../components/global.js";
+    
     import { app, db, getDispenserUIData } from '../../Firebase';
 
     let dispensers_promise = getDispenserUIData(app, db);
@@ -15,14 +15,7 @@
         return source;
     }
 
-    //function for getting the route to the specific dispenser log page
-    function LOGNAME(dispenser) {
-        let source = "/floor" + dispenser.floor + "/" + dispenser.location;
-        return source;
-    }
-
 </script>
-
 
 <!--get screen size-->
 <svelte:window bind:innerWidth bind:innerHeight />
@@ -34,9 +27,10 @@
     <ul class={`${innerWidth > 900 ? 'flex flex-wrap justify-center' : ''} `}>
         <!--each slot-->
         {#await dispensers_promise then dispensers}
-        {#each dispensers as dispenser}
+        {#each dispensers as dispenser, i (dispenser.id)}
+        {#if dispenser.floor == 1}
         <li>
-            <a href={LOGNAME(dispenser)}>
+            <a href="/logsPage" data-sveltekit-preload-data="tap"  on:mousedown={()=>globalID.update(n => dispenser.id)}>
             <div class={`mt-10 hover:brightness-90 ${innerWidth > 700 ? 'mx-10' : ''} `}>
             <img src={IMAGESOURCE(dispenser)} alt="" class={`max-w-[350px] drop-shadow-xl ${innerWidth > 700 ? 'flex flex-wrap justify-center' : ''} `}>
             <p class="absolute -mt-[90px] mx-20 font-bold text-lg">{dispenser.location}</p>
@@ -45,6 +39,7 @@
             </div>
             </a>
         </li>
+        {/if}
         {/each}
         {/await}
     </ul>

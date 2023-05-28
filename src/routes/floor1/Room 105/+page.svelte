@@ -1,1 +1,0 @@
-<h1 class="absolute p-72">Room 105 History Log</h1>

@@ -1,7 +1,17 @@
 <script>
+
     //get screen size
     $: innerWidth = 0;
     $: innerHeight = 0;
+
+    //get current route; to be used for knowing which link is active
+    import {globalID} from "../../components/global.js";
+
+    let IDvalue;
+    globalID.subscribe(value => {
+		IDvalue = Number(value);
+	});
+    console.log(IDvalue);
 
     //function for the output log in PC
     function PCLOG(log) {
@@ -9,14 +19,13 @@
         return source;
     }
 
-</script>
-
-<script context="module">
-    import { app, db, getDispenserLogs } from '../../../Firebase';
-
+    import { app, db, getDispenserLogs } from '../../Firebase';
+    
     // TODO: Get DispenserID when user clicks on dispenser status instead of hardcoding
-    const dispenserID = 1;
+    const dispenserID = IDvalue;
+    console.log(dispenserID);
     let logs_promise = getDispenserLogs(app, db, dispenserID);
+
 </script>
 
 <!--get screen size-->
@@ -52,6 +61,12 @@
     {/await}
 </div>
 </div>
+
+
+<!--Map Button-->
+<a href="../logmapPage" class="fixed bottom-[90px] right-0">
+    <img src="../map.png" alt="" class={`max-w-[100px] shadow-4xl hover:animate-bouncex`}>
+</a>
 
 <!--Back Button-->
 <button onclick="history.back()" class="fixed bottom-0 right-0">

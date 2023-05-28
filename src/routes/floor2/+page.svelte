@@ -3,18 +3,13 @@
     $: innerWidth = 0;
     $: innerHeight = 0;
 
-    let dispensers = [
-		{location: 'Stairs Left', level: 'High', status: 'Active' },
-		{location: 'Room 205', level: 'Medium', status: 'Inactive' },
-		{location: 'CR Left', level: 'Low', status: 'Active' },
-        {location: 'Room 209', level: 'Medium', status: 'Active' },
-		{location: 'Room 214', level: 'High', status: 'Active' },
-		{location: 'CR Right', level: 'Low', status: 'Active' },
-        {location: 'Stairs Right', level: 'High', status: 'Active' },
-		{location: 'Room 220', level: 'Low', status: 'Inactive' },
-		{location: 'Room 227', level: 'Low', status: 'Active' },
-	];
+    import {globalID} from "../../components/global.js";
 
+    import { app, db, getDispenserUIData } from '../../Firebase';
+
+    let dispensers_promise = getDispenserUIData(app, db);
+
+    //function for getting the source of the image
     function IMAGESOURCE(dispenser) {
         let source = "../" + dispenser.status + "-" + dispenser.level + ".png";
         return source;
@@ -31,15 +26,22 @@
 
     <!--each slot-->
     <ul class={`${innerWidth > 900 ? 'flex flex-wrap justify-center' : ''} `}>
+        {#await dispensers_promise then dispensers}
         {#each dispensers as dispenser}
+        {#if dispenser.floor == 2}
         <li>
+            <a href="/logsPage" data-sveltekit-preload-data="tap" on:mousedown={()=>globalID.set(dispenser.id)}>
             <div class={`mt-10 hover:brightness-90 ${innerWidth > 700 ? 'mx-10' : ''} `}>
             <img src={IMAGESOURCE(dispenser)} alt="" class={`max-w-[350px] drop-shadow-xl ${innerWidth > 700 ? 'flex flex-wrap justify-center' : ''} `}>
             <p class="absolute -mt-[90px] mx-20 font-bold text-lg">{dispenser.location}</p>
             <p class="absolute -mt-[65px] mx-20">Level: {dispenser.level}</p>
             <p class="absolute -mt-[40px] mx-20">Status: {dispenser.status}</p>
+            </div>
+            </a>
         </li>
+        {/if}
         {/each}
+        {/await}
     </ul>
 
 </div>

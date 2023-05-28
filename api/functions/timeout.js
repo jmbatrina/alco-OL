@@ -13,7 +13,7 @@ const handler = async (event,context)=>{
     return {statusCode:200,};
 }
 
-const interval = "0/30 * * * *"// set 30 minute interval
+const interval = "0/30,31 * * * *"
 
 // Alt values for testing:
 //const interval = "* * * * *"// 1 minute interval

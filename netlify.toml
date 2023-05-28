@@ -1,4 +1,4 @@
 [build]
-  functions = "api\\functions"
-  publish = "api\\dist"
-  
+  command = "npm run build"
+  publish = "build/"
+  functions = "functions/"

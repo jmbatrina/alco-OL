@@ -12,6 +12,9 @@ router.get('*' , (req , res)=>{
     res.send("This is the Alco-OL API endpoint");
 });
 
+
+// Receives HTTP POST pushes from dispensers to log new information
+// receives json body with fields {DispenserID, Level}
 router.post("/data", async (req, res) => {
     const date = new Date();
     var log = null;
@@ -53,7 +56,6 @@ router.post("/new", async (req, res) => {
 
 // Netlify endpoint
 import serverless from 'serverless-http';
-
 app.use(`/.netlify/functions/api`, router);
 module.exports  = app;
 module.exports.handler = serverless(app);

@@ -1,24 +1,24 @@
-// Import firestore functions
+// Import timeout function from firestore.js
 import { timeoutHandler } from './firestore.js';
 
-// Netlify Scheduled Functions
+// Import for Netlify Scheduled Functions
 import { schedule } from '@netlify/functions';
 
-// docAge threshold for timeout in [ms]
-const timeBeforeInactive = 30 * 60 * 1000
+// set the docAge threshold for timeout in [ms]
+const timeBeforeInactive = 30 * 60 * 1000 // 30 minutes
 
+// Timeout handler to pass to netlify
 const handler = async (event,context)=>{
     await timeoutHandler(timeBeforeInactive);
     return {statusCode:200,};
 }
 
-const interval = "0/30 * * * *"// 30 minute interval
+const interval = "0/30 * * * *"// set 30 minute interval
 
 // Alt values for testing:
-
 //const interval = "* * * * *"// 1 minute interval
 //const interval = "0/2 * * * *"// 2 minute interval
 //const interval = "0 6 * * *" // 6AM daily
 
-// schedule the timeoutHandler to run every 30 minutes
+// schedule the timeoutHandler to run every interval
 exports.handler = schedule(interval, handler);

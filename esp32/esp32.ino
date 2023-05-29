@@ -52,19 +52,19 @@ PinStatus lastButtonState = 0;
 unsigned long lastButtonCheckTime = 0;
 // Only check button state every 200ms
 unsigned long buttonCheckInterval = 100;
-// isPostRequested is set to true when we want to send data even before timer expires
+// isLevelReadRequested is set to true when we want to re-check dispenser level ahead of scheduled POST
 // initialized to true so that liquid level is taken and POST is sent at system boot
-bool isPostRequested = true;
+bool isLevelReadRequested = true;
 
 const int LEVEL_LOW = 1;
 const int LEVEL_MEDIUM = 2;
 const int LEVEL_HIGH = 3;
 
 #ifndef ARDUINO_MODE
-const int LEVEL_GND_PIN = 35;
-const int LEVEL_LOW_PIN = 26;
-const int LEVEL_MEDIUM_PIN = 25;
-const int LEVEL_HIGH_PIN = 33;
+const int LEVEL_GND_PIN = 33;
+const int LEVEL_LOW_PIN = 27;
+const int LEVEL_MEDIUM_PIN = 26;
+const int LEVEL_HIGH_PIN = 25;
 #else
 const int LEVEL_GND_PIN = 13;
 const int LEVEL_LOW_PIN = 8;
@@ -213,8 +213,8 @@ void loop() {
   if ((now - lastButtonCheckTime) >= buttonCheckInterval) {
     PinStatus currButtonState = digitalRead(BUTTON_PIN);
     if (lastButtonState == LOW &&  currButtonState == HIGH) {   // Rising edge
-      Serial.println("Button pressed, manually requesting for POST.");
-      isPostRequested = true;
+      Serial.println("Button pressed, manually requesting for liquid level reading.");
+      isLevelReadRequested = true;
     }
 
     lastButtonCheckTime = now;
@@ -223,7 +223,7 @@ void loop() {
 
   const unsigned long millisSinceLastPost = (now - lastPostTime);
   if (millisSinceLastPost >= postInterval     // "Normal" scheduled sending of data
-      || isPostRequested                      // Force sending of data, e.g. on boot, when error occured
+      || isLevelReadRequested                 // Force recheck of liquid level, e.g. on boot, when error occured
       || (levelLedPin == -1 && (now - lastLevelReadTime) >= levelRetryInterval)   // Retry reading liquid level since last read had error
      ) {
     bool hasError = false;
@@ -304,10 +304,10 @@ void loop() {
           Serial.println(numLevelErrors);
         }
 
-         // we just read liquid level data, so reset isPostRequested
-        isPostRequested = false;
+         // we just read liquid level data, so reset isLevelReadRequested
+        isLevelReadRequested = false;
         if (hasError) {
-          isPostRequested = true;
+          isLevelReadRequested = true;
         }
 #ifndef ARDUINO_MODE
       }

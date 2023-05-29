@@ -92,6 +92,10 @@ const int ledOnInterval = 3*1000;
 const int ledCycleTime = ledOnDuration + ledOnInterval;
 int lastLedOnTime = 0;
 
+// When we get a -1 reading, retry for a few times before sending data
+const int LEVEL_ERROR_RETRY = 5;
+int numLevelErrors = 0;
+
 const int getCurrentLiquidLevel() {
   // Supply power to liquid level sensor, wait for proper "boot"
   // NOTE: Since we are controlling the ground pin, we must set it to LOW for power to flow
@@ -247,36 +251,57 @@ void loop() {
           levelLedPin = newLedPin;
         }
 
-        // NOTE: at this point, currLiquidLevel can be -1, but we still always send POST
-        //       so that a) error will be visible in logs without needing to wait for timeout,
-        //       and b) this error will be distinguishable to "battery/power ran out" case
-        JSONVar dispenserStatus;
-        dispenserStatus["DispenserID"] = DISPENSER_ID;
-        dispenserStatus["Level"] =  currLiquidLevel;
-
-        String httpRequestData = JSON.stringify(dispenserStatus);
-        Serial.println(httpRequestData);
-
-#ifndef ARDUINO_MODE
-        int httpResponseCode = http.POST(httpRequestData);
-
-        if (httpResponseCode > 0) {
-          Serial.print("HTTP Response code: ");
-          Serial.println(httpResponseCode);
-          String payload = http.getString();
-          Serial.println(payload);
-        } else {
-          Serial.print("Error code: ");
-          Serial.println(httpResponseCode);
+        // If we get a faulty liquid level reading, increment numLevelErrors
+        if (currLiquidLevel == -1) {
+          ++numLevelErrors;
           hasError = true;
+        } else {
+          numLevelErrors = 0;
         }
 
-        http.end();   // Free resources
+        if (numLevelErrors == 0                      // no liquid level error so far, reading is OK
+           || numLevelErrors > LEVEL_ERROR_RETRY     // still has error in liquid level reading, exhausted number of retries
+           ) {
+          // NOTE: at this point, currLiquidLevel can be -1, but we still always send POST
+          //       so that a) error will be visible in logs without needing to wait for timeout,
+          //       and b) this error will be distinguishable to "battery/power ran out" case
+          JSONVar dispenserStatus;
+          dispenserStatus["DispenserID"] = DISPENSER_ID;
+          dispenserStatus["Level"] =  currLiquidLevel;
+
+          String httpRequestData = JSON.stringify(dispenserStatus);
+          Serial.println(httpRequestData);
+
+#ifndef ARDUINO_MODE
+          int httpResponseCode = http.POST(httpRequestData);
+
+          if (httpResponseCode > 0) {
+            Serial.print("HTTP Response code: ");
+            Serial.println(httpResponseCode);
+            String payload = http.getString();
+            Serial.println(payload);
+          } else {
+            Serial.print("Error code: ");
+            Serial.println(httpResponseCode);
+            hasError = true;
+          }
+
+          http.end();   // Free resources
 #endif
 
-        lastPostTime = millis();
-        // If there were errors, request resend immediately
-        isPostRequested = hasError;
+          lastPostTime = millis();
+          // we just sent our level readings, reset numLevelErrors
+          numLevelErrors = 0;
+        } else {
+          Serial.print("Error in Liquid level readings. Next run is Retry #");
+          Serial.println(numLevelErrors);
+        }
+
+         // we just read liquid level data, so reset isPostRequested
+        isPostRequested = false;
+        if (hasError) {
+          isPostRequested = true;
+        }
 #ifndef ARDUINO_MODE
       }
     }

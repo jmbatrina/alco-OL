@@ -41,6 +41,11 @@ const char* rootCACertificate = \
 "CAUw7C29C79Fv1C5qfPrmAESrciIxpg0X40KPMbp1ZWVbd4=\n" \
 "-----END CERTIFICATE-----\n";
 
+// Indicates if sending POST failed (for any reason)
+bool hasPostError = false;
+// Only retry sending of POST after 200ms
+const unsigned long postRetryDelay = 1000;
+
 unsigned long lastPostTime = 0;
 // Set timer to 5 seconds (5000) for debugging
 // TODO: Set to actual interval for deployment (e.g. 10 minutes)
@@ -226,21 +231,29 @@ void loop() {
     isLevelReadRequested = true;
   }
 
+
   const unsigned long millisSinceLastPost = (now - lastPostTime);
+#ifndef ARDUINO_MODE
+  // If there were errors, request recheck of level (+ sending of POST) immediately
+  if (millisSinceLastPost >= postRetryDelay && hasPostError) {
+    isLevelReadRequested = true;
+    hasPostError = false;
+  }
+#endif
+
   if (millisSinceLastPost >= postInterval     // "Normal" scheduled sending of data
       || isLevelReadRequested                 // Force recheck of liquid level, e.g. on boot, when error occured
      ) {
-    bool hasError = false;
 #ifndef ARDUINO_MODE
     // Check WiFi connection status
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi Disconnected.");
-      hasError = true;
+      hasPostError = true;
     } else {
       WiFiClientSecure *client = new WiFiClientSecure;
       if (!client) {
         Serial.println("Cannot establish secure connection.");
-        hasError = true;
+        hasPostError = true;
       } else {
         client->setCACert(rootCACertificate);
         HTTPClient http;
@@ -296,7 +309,7 @@ void loop() {
           } else {
             Serial.print("Error code: ");
             Serial.println(httpResponseCode);
-            hasError = true;
+            hasPostError = true;
           }
 
           http.end();   // Free resources
@@ -308,10 +321,6 @@ void loop() {
         } else {
           Serial.print("Error in Liquid level readings. Next run is Retry #");
           Serial.println(numLevelErrors);
-        }
-
-        if (hasError) {
-          isLevelReadRequested = true;
         }
 #ifndef ARDUINO_MODE
       }

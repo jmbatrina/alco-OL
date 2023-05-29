@@ -61,10 +61,10 @@ const int LEVEL_MEDIUM = 2;
 const int LEVEL_HIGH = 3;
 
 #ifndef ARDUINO_MODE
-const int LEVEL_GND_PIN = 33;
-const int LEVEL_LOW_PIN = 18;
-const int LEVEL_MEDIUM_PIN = 19;
-const int LEVEL_HIGH_PIN = 21;
+const int LEVEL_GNDx_PIN = 35;
+const int LEVEL_LOW_PIN = 26;
+const int LEVEL_MEDIUM_PIN = 25;
+const int LEVEL_HIGH_PIN = 33;
 #else
 const int LEVEL_GND_PIN = 13;
 const int LEVEL_LOW_PIN = 8;

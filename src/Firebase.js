@@ -93,6 +93,11 @@ async function getDispenserLogs(app, db, dispenserID) {
   // Sort logs in chronological order (increasing date)
   logData.sort((logA, logB) => (logA.Timestamp - logB.Timestamp));
 
+  // get location from DispenserID
+  const locationName = LocationDocPrefix + dispenserID;
+  const locSnapshot = await getDoc(doc(db, DispenserLocationCol, locationName));
+  const location = locSnapshot.data().Location;
+
   // translate raw data to strings; construct corresponding message
   let logs = [];
   let prevLevel = -1;
@@ -100,9 +105,8 @@ async function getDispenserLogs(app, db, dispenserID) {
   logData.forEach((log) => {
     // TODO: simplify timestamp representation (currently contains too much information)
     const timestamp = log.Timestamp.toDate();
-    let logEntry = { DispenserID: log.DispenserID, level: log.Level, status: log.isActive ? "Active" : "Inactive", timestamp: timestamp};
-    // TODO: get actual location from database. Hardcoded for now to minimize firestore reads
-    logEntry["location"] = "Working Dispenser";
+    let logEntry = { location: location, DispenserID: log.DispenserID, level: log.Level,
+                     status: log.isActive ? "Active" : "Inactive", timestamp: timestamp};
 
     let message = "";
     if (logEntry.status == "Inactive") {

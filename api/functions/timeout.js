@@ -14,7 +14,7 @@ const handler = async (event,context)=>{
 }
 
 // 30 minute timeout interval in cron golang format
-const interval = "0/30,31 * * * *" 
+const interval = "0,1,30,31 * * * *" 
 /* 
 currently runs again in the succeeding minute as an adlib solution
 to the problem that the firestore write functions don't really

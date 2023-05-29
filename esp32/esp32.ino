@@ -221,10 +221,14 @@ void loop() {
     lastButtonState = currButtonState;
   }
 
+  if (levelLedPin == -1 && (now - lastLevelReadTime) >= levelRetryInterval) {
+    // Retry reading liquid level since last read had error|
+    isLevelReadRequested = true;
+  }
+
   const unsigned long millisSinceLastPost = (now - lastPostTime);
   if (millisSinceLastPost >= postInterval     // "Normal" scheduled sending of data
       || isLevelReadRequested                 // Force recheck of liquid level, e.g. on boot, when error occured
-      || (levelLedPin == -1 && (now - lastLevelReadTime) >= levelRetryInterval)   // Retry reading liquid level since last read had error
      ) {
     bool hasError = false;
 #ifndef ARDUINO_MODE
@@ -248,6 +252,8 @@ void loop() {
 
         // update current liquid level
         const int currLiquidLevel = getCurrentLiquidLevel();
+         // we just read liquid level data, so reset isLevelReadRequested
+        isLevelReadRequested = false;
 
         const int newLedPin = getLedPinForLevel(currLiquidLevel);
         if (newLedPin != levelLedPin) {
@@ -304,8 +310,6 @@ void loop() {
           Serial.println(numLevelErrors);
         }
 
-         // we just read liquid level data, so reset isLevelReadRequested
-        isLevelReadRequested = false;
         if (hasError) {
           isLevelReadRequested = true;
         }

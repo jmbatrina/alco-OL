@@ -94,6 +94,9 @@ int lastLedOnTime = 0;
 
 // When we get a -1 reading, retry for a few times before sending data
 const int LEVEL_ERROR_RETRY = 5;
+// TODO: Set to actual interval for deployment (e.g. 100ms)
+unsigned long levelRetryInterval = 1*1000;
+unsigned long lastLevelReadTime = 0;
 int numLevelErrors = 0;
 
 const int getCurrentLiquidLevel() {
@@ -112,6 +115,7 @@ const int getCurrentLiquidLevel() {
   // Cut power to liquid level sensor to minimize corrosion of probes
   // NOTE: Liquid level sensor's VCC is connected to +5V; driving GND pin to HIGH cuts power
   digitalWrite(LEVEL_GND_PIN, HIGH);
+  lastLevelReadTime = millis();
 
   // DEBUG: print probe readings
   Serial.println("");
@@ -217,7 +221,11 @@ void loop() {
     lastButtonState = currButtonState;
   }
 
-  if ((now - lastPostTime) >= postInterval || isPostRequested) {
+  const unsigned long millisSinceLastPost = (now - lastPostTime);
+  if (millisSinceLastPost >= postInterval     // "Normal" scheduled sending of data
+      || isPostRequested                      // Force sending of data, e.g. on boot, when error occured
+      || (levelLedPin == -1 && (now - lastLevelReadTime) >= levelRetryInterval)   // Retry reading liquid level since last read had error
+     ) {
     bool hasError = false;
 #ifndef ARDUINO_MODE
     // Check WiFi connection status
@@ -254,7 +262,6 @@ void loop() {
         // If we get a faulty liquid level reading, increment numLevelErrors
         if (currLiquidLevel == -1) {
           ++numLevelErrors;
-          hasError = true;
         } else {
           numLevelErrors = 0;
         }

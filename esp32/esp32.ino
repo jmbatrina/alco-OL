@@ -120,10 +120,8 @@ const int getCurrentLiquidLevel() {
 
   if ((LOW_VAL == LOW && (HIGH_VAL || MEDIUM_VAL))  // MEDIUM or HIGH probes in contact with water, but not LOW probe
       || (MEDIUM_VAL == LOW && HIGH_VAL)            // HIGH probe in contact with water, but not MEDIUM probe
-      || (LOW_VAL + MEDIUM_VAL + LOW_VAL == 0)      // No probe in contact with water
      ) {
 
-    // NOTE: assumes that LOW probe reaches to the bottom of the dispenser
     // either probe(s) are broken, liquid level sensor is broken, or dispenser is tilted
     // return -1 to inform caller of error
     Serial.println("Erroneous probe data. Please check liquid sensor/probes/dispenser.");
@@ -216,9 +214,8 @@ void loop() {
   }
 
   if ((now - lastPostTime) >= postInterval || isPostRequested) {
-#ifndef ARDUINO_MODE
     bool hasError = false;
-
+#ifndef ARDUINO_MODE
     // Check WiFi connection status
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi Disconnected.");

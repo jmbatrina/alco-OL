@@ -66,7 +66,7 @@ async function getDispenserUIData(app, db) {
 
     // translate raw data to strings
     let dispensers = [];
-    const level = {1: 'Low', 2: 'Medium', 3: 'High'}
+    const level = {1: 'Low', 2: 'Medium', 3: 'High', '-1': 'Unknown'}
     disp.forEach(dispenser => {
         const { Location, Floor } = locations[dispenser.DispenserID];
         dispensers.push({ id: dispenser.DispenserID,location: Location, floor: Floor,level: level[dispenser.Level],
@@ -116,7 +116,7 @@ async function getDispenserLogs(app, db, dispenserID) {
         isPrevInactive = false;
       }
 
-      const level = {1: 'Low', 2: 'Medium', 3: 'High'}
+      const level = {1: 'Low', 2: 'Medium', 3: 'High', '-1': 'Unknown'}
       // TODO: use more informative log messages
       if (log.Level < prevLevel) {
         message += "Dropped to ";

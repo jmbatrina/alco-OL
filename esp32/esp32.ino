@@ -61,7 +61,7 @@ const int LEVEL_MEDIUM = 2;
 const int LEVEL_HIGH = 3;
 
 #ifndef ARDUINO_MODE
-const int LEVEL_GNDx_PIN = 35;
+const int LEVEL_GND_PIN = 35;
 const int LEVEL_LOW_PIN = 26;
 const int LEVEL_MEDIUM_PIN = 25;
 const int LEVEL_HIGH_PIN = 33;
@@ -217,13 +217,17 @@ void loop() {
 
   if ((now - lastPostTime) >= postInterval || isPostRequested) {
 #ifndef ARDUINO_MODE
+    bool hasError = false;
+
     // Check WiFi connection status
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi Disconnected.");
+      hasError = true;
     } else {
       WiFiClientSecure *client = new WiFiClientSecure;
       if (!client) {
         Serial.println("Cannot establish secure connection.");
+        hasError = true;
       } else {
         client->setCACert(rootCACertificate);
         HTTPClient http;
@@ -264,17 +268,18 @@ void loop() {
           Serial.println(httpResponseCode);
           String payload = http.getString();
           Serial.println(payload);
-        }
-        else {
+        } else {
           Serial.print("Error code: ");
           Serial.println(httpResponseCode);
+          hasError = true;
         }
 
         http.end();   // Free resources
 #endif
 
         lastPostTime = millis();
-        isPostRequested = false;
+        // If there were errors, request resend immediately
+        isPostRequested = hasError;
 #ifndef ARDUINO_MODE
       }
     }

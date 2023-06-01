@@ -22,7 +22,8 @@
     <!--group for slot-->
     <ul class={`${innerWidth > 900 ? 'flex flex-wrap justify-center' : ''} `}>
         <!--each slot-->
-        {#each $dispensers as dispenser, i (dispenser.id)}
+        <!-- TODO: investigate why adding a key to the each block causes "Cannot have duplicate keys in a keyed each" error -->
+        {#each $dispensers as dispenser}
         {#if dispenser.floor == 1}
         <li>
             <a href="/logsPage" data-sveltekit-preload-data="tap"  on:mousedown={()=>globalID.update(n => dispenser.id)}>

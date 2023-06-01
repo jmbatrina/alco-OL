@@ -3,17 +3,18 @@ import { app, db, getDispenserUIData } from '../Firebase';
 
 let globalID = writable(0);
 
-let dispensers = [];
+let dispensers = writable([]);
+let dispenserData = {};
 
-async function getDispenserUIData_cached() {
-    if (dispensers.length == 0) {
-        dispensers = await getDispenserUIData(app, db);
-    }
+getDispenserUIData(app, db).then((disps) => {
+    disps.forEach((dispenser) => {
+        dispenserData[dispenser.id] = dispenser;
+    });
 
-    return dispensers;
-}
+    dispensers.set(Array.from(Object.values(dispenserData)));
+});
 
 
 export {
-    globalID, getDispenserUIData_cached
+    globalID, dispensers
 };

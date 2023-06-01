@@ -3,7 +3,7 @@
     $: innerWidth = 0;
     $: innerHeight = 0;
 
-    import {globalID, getDispenserUIData_cached} from "../../components/global.js";
+    import {globalID, dispensers} from "../../components/global.js";
 
     //function for getting the source of the image
     function IMAGESOURCE(dispenser) {
@@ -22,8 +22,7 @@
 
     <!--each slot-->
     <ul class={`${innerWidth > 900 ? 'flex flex-wrap justify-center' : ''} `}>
-        {#await getDispenserUIData_cached() then dispensers}
-        {#each dispensers as dispenser}
+        {#each $dispensers as dispenser}
         {#if dispenser.floor == 2}
         <li>
             <a href="/logsPage" data-sveltekit-preload-data="tap" on:mousedown={()=>globalID.set(dispenser.id)}>
@@ -37,7 +36,6 @@
         </li>
         {/if}
         {/each}
-        {/await}
     </ul>
 
 </div>

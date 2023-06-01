@@ -2,7 +2,7 @@
     import { onMount, onDestroy } from 'svelte';
     import { browser } from '$app/environment';
   
-    import {globalID, getDispenserUIData_cached} from "./global.js";
+    import {globalID, dispensers} from "./global.js";
 
     //get current route; to be used for knowing which link is active
     let IDvalue;
@@ -12,7 +12,7 @@
     
     //marker location
     
-    // let dispenserbase = dispensers[Number(IDvalue)-1].floor;
+    // let dispenserbase = $dispensers[Number(IDvalue)-1].floor;
   
     // leaflet
     let mapElement;
@@ -61,26 +61,24 @@
       Inactive_Unknown_Tag = new alcotags({iconUrl: '../inactive-unknown-tag.png'});
   
     // function MARKER(dispenser){\
-    let dispensers = await getDispenserUIData_cached();
-  
+
     let tag;
   
-    for (let i = 0;i<dispensers.length; i+=1){
-        if (dispensers[i].floor == 2){
-  
-          if (dispensers[i].status == "Active"){
-          if (dispensers[i].level == "High") tag = Active_High_Tag;
-          else if (dispensers[i].level == "Medium") tag = Active_Medium_Tag;
-          else if (dispensers[i].level == "Low") tag = Active_Low_Tag;
+    for (let i = 0;i<$dispensers.length; i+=1){
+        if ($dispensers[i].floor == 2){
+          if ($dispensers[i].status == "Active"){
+          if ($dispensers[i].level == "High") tag = Active_High_Tag;
+          else if ($dispensers[i].level == "Medium") tag = Active_Medium_Tag;
+          else if ($dispensers[i].level == "Low") tag = Active_Low_Tag;
           else tag = Inactive_Unknown_Tag;
         }
         else{
-          if (dispensers[i].level == "High") tag = Inactive_High_Tag;
-          else if (dispensers[i].level == "Medium") tag = Inactive_Medium_Tag;
-          else if (dispensers[i].level == "Low") tag = Inactive_Low_Tag;
+          if ($dispensers[i].level == "High") tag = Inactive_High_Tag;
+          else if ($dispensers[i].level == "Medium") tag = Inactive_Medium_Tag;
+          else if ($dispensers[i].level == "Low") tag = Inactive_Low_Tag;
           else tag = Inactive_Unknown_Tag;
         }
-        L.marker(dispensers[i].xy, {icon: tag}).bindTooltip(dispensers[i].location, 
+        L.marker($dispensers[i].xy, {icon: tag}).bindTooltip($dispensers[i].location,
         {
           permanent: true, 
           direction: 'top',

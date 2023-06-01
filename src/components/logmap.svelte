@@ -2,14 +2,14 @@
   import { onMount, onDestroy } from 'svelte';
   import { browser } from '$app/environment';
 
-  //get current route; to be used for knowing which link is active
-  import {globalID} from "./global.js";
+  import {globalID, getDispenserUIData_cached} from "./global.js";
 
+  //get current route; to be used for knowing which link is active
   let IDvalue;
   globalID.subscribe(value => {
     IDvalue = Number(value);
   });
-  
+
 
   //uncomment once db has xy-coordinates
   // import { app, db, getDispenserUIData } from '../Firebase';
@@ -29,11 +29,7 @@
     if(browser) {
       const leaflet = await import('leaflet');
 
-      let dispensers = [
-        {id:1, xy: [0,0] , status: 'Active', level: 'Medium', location: 'Working Dispenser', floor: 1},
-        {id:2, xy: [-50,-100], status: 'Active', level: 'Medium', location: 'Back Entrance', floor: 1},
-        {id:3, xy: [70,50], status: 'Inactive', level: 'Unknown', location: 'Near CR', floor: 2},
-      ];
+      let dispensers = await getDispenserUIData_cached();
 
       let basefloor = Number(IDvalue-1);
       

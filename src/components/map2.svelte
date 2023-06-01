@@ -2,21 +2,14 @@
     import { onMount, onDestroy } from 'svelte';
     import { browser } from '$app/environment';
   
+    import {globalID, getDispenserUIData_cached} from "./global.js";
+
     //get current route; to be used for knowing which link is active
-    import {globalID} from "./global.js";
-  
     let IDvalue;
     globalID.subscribe(value => {
       IDvalue = Number(value);
     });
     
-  
-    //uncomment once db has xy-coordinates
-    // import { app, db, getDispenserUIData } from '../Firebase';
-  
-    // let dispensers_promise = getDispenserUIData(app, db);
-    // console.log(dispensers);
-  
     //marker location
     
     // let dispenserbase = dispensers[Number(IDvalue)-1].floor;
@@ -68,11 +61,7 @@
       Inactive_Unknown_Tag = new alcotags({iconUrl: '../inactive-unknown-tag.png'});
   
     // function MARKER(dispenser){\
-    let dispensers = [
-      {id:1, xy: [0,0] , status: 'Active', level: 'Medium', floor: 1, location: 'Working Dispenser'},
-      {id:2, xy: [-50,-100], status: 'Active', level: 'Medium', floor: 1, location: 'Back Entrance'},
-      {id:3, xy: [70,50], status: 'Inactive', level: 'Unknown', location: 'Near CR', floor: 2},
-    ];
+    let dispensers = await getDispenserUIData_cached();
   
     let tag;
   

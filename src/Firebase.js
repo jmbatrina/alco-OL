@@ -152,8 +152,49 @@ async function getDispenserLogs(app, db, dispenserID) {
   return logs;
 }
 
+function onDispenserDataChange(app, db, add_func, edit_func, remove_func, post_func) {
+  // listen for changes in latest dispenser data
+  onSnapshot(collection(db, DispenserLatestCol), (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      let data = change.doc.data();
+      data.DispenserID = change.doc.id.substring(LatestDocPrefix.length);
+      data.change_for = "dispenser";
+
+      switch(change.type) {
+        case "added": add_func(data); break;
+        case "modified": edit_func(data); break;
+        case "removed": remove_func(data); break;
+      }
+      console.log("DATA", change, change.doc, change.doc.data());
+    });
+
+    post_func();
+  });
+
+  // listen for changes in location data
+  onSnapshot(collection(db, DispenserLocationCol), (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      let data = change.doc.data();
+      data.DispenserID = change.doc.id.substring(LocationDocPrefix.length);
+      data.change_for = "location";
+
+      switch(change.type) {
+        case "added": add_func(data); break;
+        case "modified": edit_func(data); break;
+        case "removed": remove_func(data); break;
+      }
+      console.log("LOC", change);
+    });
+
+    post_func();
+  });
+
+  // NOTE: since logs are currently always pulled from firestore on reload, we don't monitor it
+}
+
 export {
-    app, db, getDispenserLatestData, getLocations, getDispenserUIData, getDispenserLogs
+    app, db, getDispenserLatestData, getLocations, getDispenserLogs,
+    getDispenserUIData, firestoreDataToObj, onDispenserDataChange
 }
 
 

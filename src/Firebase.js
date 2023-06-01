@@ -24,6 +24,17 @@ const LatestDocPrefix = "Latest";
 const LocationDocPrefix = "Loc-";
 
 const db = getFirestore(app);
+
+function firestoreDataToObj(dispenser, location) {
+  // NOTE: expects dispenser to be a DispenserLatest document's data PLUS DispenserID (see getDispenserLatestData)
+  //       expects location to be a DispenserLocation document's data
+  const { Location, Floor, MapCoordinates } = location;
+  const level = {1: 'Low', 2: 'Medium', 3: 'High', '-1': 'Unknown'}
+
+  return { id: dispenser.DispenserID, location: Location, floor: Floor, xy: MapCoordinates,
+          level: level[dispenser.Level], status: dispenser.isActive ? "Active" : "Inactive" };
+}
+
 // Get a list of cities from your database
 async function getDispenserLatestData(db) {
   const dispenserCol = collection(db, DispenserLatestCol);
@@ -66,11 +77,8 @@ async function getDispenserUIData(app, db) {
 
     // translate raw data to strings
     let dispensers = [];
-    const level = {1: 'Low', 2: 'Medium', 3: 'High', '-1': 'Unknown'}
     disp.forEach(dispenser => {
-        const { Location, Floor, MapCoordinates } = locations[dispenser.DispenserID];
-        dispensers.push({ id: dispenser.DispenserID, location: Location, floor: Floor, xy: MapCoordinates,
-                          level: level[dispenser.Level], status: dispenser.isActive ? "Active" : "Inactive" });
+        dispensers.push(firestoreDataToObj(dispenser, locations[dispenser.DispenserID]));
     });
     console.log("Dispensers")
     console.log(dispensers)
@@ -143,7 +151,6 @@ async function getDispenserLogs(app, db, dispenserID) {
   logs.reverse();
   return logs;
 }
-
 
 export {
     app, db, getDispenserLatestData, getLocations, getDispenserUIData, getDispenserLogs

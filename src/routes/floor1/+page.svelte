@@ -3,11 +3,7 @@
     $: innerWidth = 0;
     $: innerHeight = 0;
 
-    import {globalID} from "../../components/global.js";
-    
-    import { app, db, getDispenserUIData } from '../../Firebase';
-
-    let dispensers_promise = getDispenserUIData(app, db);
+    import {globalID, getDispenserUIData_cached} from "../../components/global.js";
 
     //function for getting the source of the image
     function IMAGESOURCE(dispenser) {
@@ -26,7 +22,7 @@
     <!--group for slot-->
     <ul class={`${innerWidth > 900 ? 'flex flex-wrap justify-center' : ''} `}>
         <!--each slot-->
-        {#await dispensers_promise then dispensers}
+        {#await getDispenserUIData_cached() then dispensers}
         {#each dispensers as dispenser, i (dispenser.id)}
         {#if dispenser.floor == 1}
         <li>

@@ -1,0 +1,5 @@
+# overwrite the netlify.toml in the root with this toml file to build on netlify backend instead
+
+[build]
+  publish = "api\\dist"
+  functions = "api\\functions"

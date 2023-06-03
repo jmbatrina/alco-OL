@@ -69,6 +69,8 @@ JSON {
     Level:<int>
     Location: <string>,
     Floor: <int>,
+    x : <int>,
+    y : <int>
 }
 ```
 ## Timeout Handler

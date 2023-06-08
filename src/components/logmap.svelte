@@ -2,24 +2,24 @@
   import { onMount, onDestroy } from 'svelte';
   import { browser } from '$app/environment';
 
-  //get current route; to be used for knowing which link is active
-  import {globalID} from "./global.js";
+  import {globalID, dispensers} from "./global.js";
 
+  //get current route; to be used for knowing which link is active
   let IDvalue;
   globalID.subscribe(value => {
     IDvalue = Number(value);
   });
-  
+
 
   //uncomment once db has xy-coordinates
   // import { app, db, getDispenserUIData } from '../Firebase';
 
-  // let dispensers_promise = getDispenserUIData(app, db);
-  // console.log(dispensers);
+  // let $dispensers_promise = getDispenserUIData(app, db);
+  // console.log($dispensers);
 
   //marker location
   
-  // let dispenserbase = dispensers[Number(IDvalue)-1].floor;
+  // let dispenserbase = $dispensers[Number(IDvalue)-1].floor;
 
   // leaflet
   let mapElement;
@@ -29,12 +29,6 @@
     if(browser) {
       const leaflet = await import('leaflet');
 
-      let dispensers = [
-        {id:1, xy: [0,0] , status: 'Active', level: 'Medium', location: 'Working Dispenser', floor: 1},
-        {id:2, xy: [-50,-100], status: 'Active', level: 'Medium', location: 'Back Entrance', floor: 1},
-        {id:3, xy: [70,50], status: 'Inactive', level: 'High', location: 'Near CR', floor: 2},
-      ];
-
       let basefloor = Number(IDvalue-1);
       
       // create map component
@@ -42,10 +36,10 @@
 
 
       // get and set values of floorplan
-      if (dispensers[basefloor].floor == 1){
+      if ($dispensers[basefloor].floor == 1){
         var imageUrl = 'https://www.rockwellprimaries.com.ph/wp-content/uploads/2019/05/2BR-1-1.jpg';
       }
-      else if (dispensers[basefloor].floor == 2){
+      else if ($dispensers[basefloor].floor == 2){
         var imageUrl = 'https://wpmedia.roomsketcher.com/content/uploads/2022/03/31095248/blue-green-2d-floor-plan.jpg';
       }
       
@@ -79,11 +73,12 @@
     Active_Low_Tag = new alcotags({iconUrl: '../active-low-tag.png'}),
     Inactive_High_Tag = new alcotags({iconUrl: '../inactive-high-tag.png'}),
     Inactive_Medium_Tag = new alcotags({iconUrl: '../inactive-medium-tag.png'}),
-    Inactive_Low_Tag = new alcotags({iconUrl: '../inactive-low-tag.png'});
+    Inactive_Low_Tag = new alcotags({iconUrl: '../inactive-low-tag.png'}),
+    Inactive_Unknown_Tag = new alcotags({iconUrl: '../inactive-unknown-tag.png'});
 
   // function MARKER(dispenser){\
   
-  // let floornum = "FLOOR " + dispensers[basefloor].floor;
+  // let floornum = "FLOOR " + $dispensers[basefloor].floor;
   // L.marker([50, 0],{opacity: 0}).bindTooltip(floornum,{
   //       permanent: true, 
   //       direction: 'center',
@@ -93,22 +88,24 @@
 
   let tag;
 
-  for (let i = 0;i<dispensers.length; i+=1){
-    if (dispensers[i].floor === dispensers[basefloor].floor){
+  for (let i = 0;i<$dispensers.length; i+=1){
+    if ($dispensers[i].floor === $dispensers[basefloor].floor){
     
       
 
-      if (dispensers[i].status == "Active"){
-        if (dispensers[i].level == "High") tag = Active_High_Tag;
-        else if (dispensers[i].level == "Medium") tag = Active_Medium_Tag;
-        else tag = Active_Low_Tag;
-      }
-      else{
-        if (dispensers[i].level == "High") tag = Inactive_High_Tag;
-        else if (dispensers[i].level == "Medium") tag = Inactive_Medium_Tag;
-        else tag = Inactive_Low_Tag;
-      }
-      L.marker(dispensers[i].xy, {icon: tag}).bindTooltip(dispensers[i].location, 
+      if ($dispensers[i].status == "Active"){
+          if ($dispensers[i].level == "High") tag = Active_High_Tag;
+          else if ($dispensers[i].level == "Medium") tag = Active_Medium_Tag;
+          else if ($dispensers[i].level == "Low") tag = Active_Low_Tag;
+          else tag = Inactive_Unknown_Tag;
+        }
+        else{
+          if ($dispensers[i].level == "High") tag = Inactive_High_Tag;
+          else if ($dispensers[i].level == "Medium") tag = Inactive_Medium_Tag;
+          else if ($dispensers[i].level == "Low") tag = Inactive_Low_Tag;
+          else tag = Inactive_Unknown_Tag;
+        }
+      L.marker($dispensers[i].xy, {icon: tag}).bindTooltip($dispensers[i].location,
       {
         permanent: true, 
         direction: 'top',
@@ -173,8 +170,8 @@
 
 
 <main>
-  <!-- {#await dispensers_promise then dispensers} -->
-  <!-- {#each dispensers as dispenser, i (dispenser.id)} -->
+  <!-- {#await $dispensers_promise then $dispensers} -->
+  <!-- {#each $dispensers as dispenser, i (dispenser.id)} -->
     <!-- {#if dispenser.floor == 1}
     <li>
       {MARKER(dispenser)}

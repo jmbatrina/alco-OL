@@ -24,6 +24,17 @@ const LatestDocPrefix = "Latest";
 const LocationDocPrefix = "Loc-";
 
 const db = getFirestore(app);
+
+function firestoreDataToObj(dispenser, location) {
+  // NOTE: expects dispenser to be a DispenserLatest document's data PLUS DispenserID (see getDispenserLatestData)
+  //       expects location to be a DispenserLocation document's data
+  const { Location, Floor, MapCoordinates } = location;
+  const level = {1: 'Low', 2: 'Medium', 3: 'High', '-1': 'Unknown'}
+
+  return { id: dispenser.DispenserID, location: Location, floor: Floor, xy: MapCoordinates,
+          level: level[dispenser.Level], status: dispenser.isActive ? "Active" : "Inactive" };
+}
+
 // Get a list of cities from your database
 async function getDispenserLatestData(db) {
   const dispenserCol = collection(db, DispenserLatestCol);
@@ -66,11 +77,8 @@ async function getDispenserUIData(app, db) {
 
     // translate raw data to strings
     let dispensers = [];
-    const level = {1: 'Low', 2: 'Medium', 3: 'High'}
     disp.forEach(dispenser => {
-        const { Location, Floor } = locations[dispenser.DispenserID];
-        dispensers.push({ id: dispenser.DispenserID,location: Location, floor: Floor,level: level[dispenser.Level],
-                          status: dispenser.isActive ? "Active" : "Inactive" });
+        dispensers.push(firestoreDataToObj(dispenser, locations[dispenser.DispenserID]));
     });
     console.log("Dispensers")
     console.log(dispensers)
@@ -93,6 +101,11 @@ async function getDispenserLogs(app, db, dispenserID) {
   // Sort logs in chronological order (increasing date)
   logData.sort((logA, logB) => (logA.Timestamp - logB.Timestamp));
 
+  // get location from DispenserID
+  const locationName = LocationDocPrefix + dispenserID;
+  const locSnapshot = await getDoc(doc(db, DispenserLocationCol, locationName));
+  const location = locSnapshot.data().Location;
+
   // translate raw data to strings; construct corresponding message
   let logs = [];
   let prevLevel = -1;
@@ -100,9 +113,8 @@ async function getDispenserLogs(app, db, dispenserID) {
   logData.forEach((log) => {
     // TODO: simplify timestamp representation (currently contains too much information)
     const timestamp = log.Timestamp.toDate();
-    let logEntry = { DispenserID: log.DispenserID, level: log.Level, status: log.isActive ? "Active" : "Inactive", timestamp: timestamp};
-    // TODO: get actual location from database. Hardcoded for now to minimize firestore reads
-    logEntry["location"] = "Working Dispenser";
+    let logEntry = { location: location, DispenserID: log.DispenserID, level: log.Level,
+                     status: log.isActive ? "Active" : "Inactive", timestamp: timestamp};
 
     let message = "";
     if (logEntry.status == "Inactive") {
@@ -116,7 +128,7 @@ async function getDispenserLogs(app, db, dispenserID) {
         isPrevInactive = false;
       }
 
-      const level = {1: 'Low', 2: 'Medium', 3: 'High'}
+      const level = {1: 'Low', 2: 'Medium', 3: 'High', '-1': 'Unknown'}
       // TODO: use more informative log messages
       if (log.Level < prevLevel) {
         message += "Dropped to ";
@@ -140,9 +152,49 @@ async function getDispenserLogs(app, db, dispenserID) {
   return logs;
 }
 
+function onDispenserDataChange(app, db, add_func, edit_func, remove_func, post_func) {
+  // listen for changes in latest dispenser data
+  onSnapshot(collection(db, DispenserLatestCol), (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      let data = change.doc.data();
+      data.DispenserID = change.doc.id.substring(LatestDocPrefix.length);
+      data.change_for = "dispenser";
+
+      switch(change.type) {
+        case "added": add_func(data); break;
+        case "modified": edit_func(data); break;
+        case "removed": remove_func(data); break;
+      }
+      console.log("DATA", change, change.doc, change.doc.data());
+    });
+
+    post_func();
+  });
+
+  // listen for changes in location data
+  onSnapshot(collection(db, DispenserLocationCol), (snapshot) => {
+    snapshot.docChanges().forEach((change) => {
+      let data = change.doc.data();
+      data.DispenserID = change.doc.id.substring(LocationDocPrefix.length);
+      data.change_for = "location";
+
+      switch(change.type) {
+        case "added": add_func(data); break;
+        case "modified": edit_func(data); break;
+        case "removed": remove_func(data); break;
+      }
+      console.log("LOC", change);
+    });
+
+    post_func();
+  });
+
+  // NOTE: since logs are currently always pulled from firestore on reload, we don't monitor it
+}
 
 export {
-    app, db, getDispenserLatestData, getLocations, getDispenserUIData, getDispenserLogs
+    app, db, getDispenserLatestData, getLocations, getDispenserLogs,
+    getDispenserUIData, firestoreDataToObj, onDispenserDataChange
 }
 
 

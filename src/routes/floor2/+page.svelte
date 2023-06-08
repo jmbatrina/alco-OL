@@ -3,11 +3,7 @@
     $: innerWidth = 0;
     $: innerHeight = 0;
 
-    import {globalID} from "../../components/global.js";
-
-    import { app, db, getDispenserUIData } from '../../Firebase';
-
-    let dispensers_promise = getDispenserUIData(app, db);
+    import {globalID, dispensers} from "../../components/global.js";
 
     //function for getting the source of the image
     function IMAGESOURCE(dispenser) {
@@ -26,8 +22,7 @@
 
     <!--each slot-->
     <ul class={`${innerWidth > 900 ? 'flex flex-wrap justify-center' : ''} `}>
-        {#await dispensers_promise then dispensers}
-        {#each dispensers as dispenser}
+        {#each $dispensers as dispenser}
         {#if dispenser.floor == 2}
         <li>
             <a href="/logsPage" data-sveltekit-preload-data="tap" on:mousedown={()=>globalID.set(dispenser.id)}>
@@ -41,7 +36,6 @@
         </li>
         {/if}
         {/each}
-        {/await}
     </ul>
 
 </div>

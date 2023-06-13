@@ -83,6 +83,15 @@ unsigned long levelRetryInterval = 1*1000;
 unsigned long lastLevelReadTime = 0;
 int numLevelErrors = 0;
 
+const int DISPENSER_POWER_PIN = 34;
+const float DISPENSER_INACTIVE_VOLTAGE = 2.0;
+
+// The ESP32 GPIO pins have a max voltage input of 3.3V
+// The ESP32 has 12-bits resolution for analog values; 2^12 = 4096
+const float ESP32_GPIO_VOLTAGE = 3.3;
+const int ESP32_ANALOG_MAX = 4096;
+bool isDispenserActive;
+
 const int getCurrentLiquidLevel() {
   // Get readings for each level output pin
   // NOTE: For some unknown reason, the readings are inverted, so we invert the outputs
@@ -138,6 +147,19 @@ const int getLedPinForLevel(const int level) {
   return pin;
 }
 
+const int getIsDispenserActive() {
+  // Translate analog reading from 0-4095 to 0V-3.3V
+  const float battery_voltage = (analogRead(DISPENSER_POWER_PIN) * ESP32_GPIO_VOLTAGE) / ESP32_ANALOG_MAX;
+
+  // DEBUG: show current battery voltage
+  // Serial.print("Dispenser Battery voltage:");
+  // Serial.println(battery_voltage);
+
+  if (battery_voltage > DISPENSER_INACTIVE_VOLTAGE)
+    return true;
+  else
+    return false;
+}
 
 void setup() {
   pinMode(BUTTON_PIN, INPUT);
@@ -161,6 +183,8 @@ void setup() {
   Serial.println("");
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
+
+  isDispenserActive = getIsDispenserActive();
 }
 
 // This section will run forever after the setup() function. Each loop cycle will have
@@ -169,6 +193,13 @@ void setup() {
 // and a POST attempt
 void loop() {
   const unsigned long now = millis();
+
+  const int isDispenserActive_new = getIsDispenserActive();
+  if (isDispenserActive_new != isDispenserActive) {
+    // Status of dispenser battery changed. Send POST immediately to inform server of change
+    isLevelReadRequested = true;
+    isDispenserActive = isDispenserActive_new;
+  }
 
   // Recall that we use a LED cycle for power saving purposes, and the following expressions
   // help facilitate that by checking if an LED light needs to be updated.
@@ -225,6 +256,11 @@ void loop() {
   if (millisSinceLastPost >= postInterval     // "Normal" scheduled sending of data
       || isLevelReadRequested                 // Force recheck of liquid level, e.g. on boot, when error occured, or when BOOT pin is pressed
      ) {
+
+    // Print battery status every time we try to send a POST
+    Serial.print("Dispenser Power:");
+    Serial.println(isDispenserActive_new ? "ACTIVE" : "INACTIVE");
+
     // Check WiFi connection status
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi Disconnected.");
@@ -278,6 +314,7 @@ void loop() {
           JSONVar dispenserStatus;
           dispenserStatus["DispenserID"] = DISPENSER_ID;
           dispenserStatus["Level"] =  currLiquidLevel;
+          dispenserStatus["isActive"] = isDispenserActive;
 
           String httpRequestData = JSON.stringify(dispenserStatus);
           Serial.println(httpRequestData);

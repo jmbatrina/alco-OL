@@ -1,13 +1,8 @@
-// Comment out the symbolic Macro below if running on ESP32
-// #define ARDUINO_MODE
-
 #include <Arduino_JSON.h>
 
-#ifndef ARDUINO_MODE
 #include <WiFi.h>
 #include <WiFiClientSecure.h>
 #include <HTTPClient.h>
-#endif
 
 #define PinStatus int
 
@@ -47,9 +42,9 @@ bool hasPostError = false;
 const unsigned long postRetryDelay = 1000;
 
 unsigned long lastPostTime = 0;
-// Set timer to 5 seconds (5000) for debugging
+// Set timer to 3 seconds (3000ms) for debugging
 // TODO: Set to actual interval for deployment (e.g. 10 minutes)
-unsigned long postInterval = 5*1000;
+unsigned long postInterval = 3*1000;
 
 // NOTE: Pin 0 is connected to "Boot" button in ESP32
 const int BUTTON_PIN = 0;
@@ -65,29 +60,13 @@ const int LEVEL_LOW = 1;
 const int LEVEL_MEDIUM = 2;
 const int LEVEL_HIGH = 3;
 
-#ifndef ARDUINO_MODE
-const int LEVEL_GND_PIN = 33;
 const int LEVEL_LOW_PIN = 27;
 const int LEVEL_MEDIUM_PIN = 26;
 const int LEVEL_HIGH_PIN = 25;
-#else
-const int LEVEL_GND_PIN = 13;
-const int LEVEL_LOW_PIN = 8;
-const int LEVEL_MEDIUM_PIN = 9;
-const int LEVEL_HIGH_PIN = 10;
-#endif
-// Delay to wait for the liquid level to properly "boot"
-const int levelBootDelay = 50;
 
-#ifndef ARDUINO_MODE
 const int LED_LOW_PIN = 13;
 const int LED_MEDIUM_PIN = 12;
 const int LED_HIGH_PIN = 14;
-#else
-const int LED_LOW_PIN = 5;
-const int LED_MEDIUM_PIN = 6;
-const int LED_HIGH_PIN = 7;
-#endif
 unsigned long levelLedPin = -1;   // pin of LED which should be enabled
 
 // The amount of time an LED stays on (3 seconds per cycle)
@@ -105,21 +84,12 @@ unsigned long lastLevelReadTime = 0;
 int numLevelErrors = 0;
 
 const int getCurrentLiquidLevel() {
-  // Supply power to liquid level sensor, wait for proper "boot"
-  // NOTE: Since we are controlling the ground pin, we must set it to LOW for power to flow
-  digitalWrite(LEVEL_GND_PIN, LOW);
-  delay(levelBootDelay);
-
   // Get readings for each level output pin
   // NOTE: For some unknown reason, the readings are inverted, so we invert the outputs
   //       e.g. if none of the probes are in contact, all have a reading of 1 instead of 0
   const PinStatus LOW_VAL = !digitalRead(LEVEL_LOW_PIN);
   const PinStatus MEDIUM_VAL = !digitalRead(LEVEL_MEDIUM_PIN);
   const PinStatus HIGH_VAL = !digitalRead(LEVEL_HIGH_PIN);
-
-  // Cut power to liquid level sensor to minimize corrosion of probes
-  // NOTE: Liquid level sensor's VCC is connected to +5V; driving GND pin to HIGH cuts power
-  digitalWrite(LEVEL_GND_PIN, HIGH);
   lastLevelReadTime = millis();
 
   // DEBUG: print probe readings
@@ -175,14 +145,12 @@ void setup() {
   pinMode(LEVEL_MEDIUM_PIN, INPUT);
   pinMode(LEVEL_HIGH_PIN, INPUT);
 
-  pinMode(LEVEL_GND_PIN, OUTPUT);
   pinMode(LED_LOW_PIN, OUTPUT);
   pinMode(LED_MEDIUM_PIN, OUTPUT);
   pinMode(LED_HIGH_PIN, OUTPUT);
 
   Serial.begin(115200);
 
-#ifndef ARDUINO_MODE
   WiFi.begin(ssid, password);
   Serial.print("Connecting to ");
   Serial.print(ssid);
@@ -193,28 +161,36 @@ void setup() {
   Serial.println("");
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
-#else
-  Serial.println("ARDUINO_MODE macro defined, running on Debug mode. No HTTP POSTs will be sent.");
-#endif
 }
 
+// This section will run forever after the setup() function. Each loop cycle will have
+// a liquid level reading
+// an LED lighting
+// and a POST attempt
 void loop() {
   const unsigned long now = millis();
 
-  // check if LED light needs to be updated
+  // Recall that we use a LED cycle for power saving purposes, and the following expressions
+  // help facilitate that by checking if an LED light needs to be updated.
   // NOTE: LED pin can be -1 if liquid level can not be properly determined
   if (levelLedPin != -1) {
-    const PinStatus currLedState = digitalRead(levelLedPin);
+    const PinStatus currLedState = digitalRead(levelLedPin);  // check if currentLed is ON or OFF
+    // if the LED has already blinked (turned ON and OFF for the specified amount of time) within the current LED cycle,
+    // we start the next the next LED cycle by turning it ON
     if (currLedState == LOW && (now - lastLedOnTime) >= ledCycleTime) {
       // Start next LED cycle, turn on LED
       digitalWrite(levelLedPin, HIGH);
       lastLedOnTime = now;
+      // else if LED is currently ON, then it means that it's in the middle of the LED cycle (just turned ON) and now
+      // we check if the LED was already turned ON for the specified amount of time (3 sec in this case), then we turn it OFF
+      // Note that this constitutes the next half of the LED cycle.
     } else if (currLedState == HIGH && (now - lastLedOnTime) >= ledOnDuration) {
       // LED already active for alloted time, turn off until next LED cycle
       digitalWrite(levelLedPin, LOW);
     }
   }
 
+  // TODO: Fetch explanation from Javi
   if ((now - lastButtonCheckTime) >= buttonCheckInterval) {
     PinStatus currButtonState = digitalRead(BUTTON_PIN);
     if (lastButtonState == LOW &&  currButtonState == HIGH) {   // Rising edge
@@ -226,42 +202,50 @@ void loop() {
     lastButtonState = currButtonState;
   }
 
+  // Recall that levelLedPin is set to -1 initially and when the current liquid level
+  // is -1, both indicates error. We only set it if the interval between the previous retry and now has passed. 
   if (levelLedPin == -1 && (now - lastLevelReadTime) >= levelRetryInterval) {
     // Retry reading liquid level since last read had error|
     isLevelReadRequested = true;
   }
 
-
+  // Here, we get the time since a last POST has been successfully sent
+  // (successful indicating that all guard conditions on WiFi connection, liquid level errors have been passed and we received an HTTP OK (200) from server)
   const unsigned long millisSinceLastPost = (now - lastPostTime);
-#ifndef ARDUINO_MODE
   // If there were errors, request recheck of level (+ sending of POST) immediately
+  // Triggered upon not being able to receive an HTTP OK from the server (connection lost, received a != 200 HTTP Code)
   if (millisSinceLastPost >= postRetryDelay && hasPostError) {
     isLevelReadRequested = true;
     hasPostError = false;
   }
-#endif
 
+// postInterval is the time between each scheduled status update of the dispenser
+// millisSinceLastPost is when the last successful post was sent, se we only try to send when
+// we the postInterval has elapsed relative to millisSinceLastPost
   if (millisSinceLastPost >= postInterval     // "Normal" scheduled sending of data
-      || isLevelReadRequested                 // Force recheck of liquid level, e.g. on boot, when error occured
+      || isLevelReadRequested                 // Force recheck of liquid level, e.g. on boot, when error occured, or when BOOT pin is pressed
      ) {
-#ifndef ARDUINO_MODE
     // Check WiFi connection status
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi Disconnected.");
       hasPostError = true;
     } else {
+      // With a WiFi connection, we can now establish a secure HTTP connection with the backend server.
+      // The secure connection is contained by a WiFiClientSecure instance
       WiFiClientSecure *client = new WiFiClientSecure;
       if (!client) {
         Serial.println("Cannot establish secure connection.");
         hasPostError = true;
       } else {
+        // We set the certificate of the POST request to that of the same public certificate used by the backend server
+        // so that the server can verify that the POST request is coming from a legitemate source (i.e. the dispenser)
         client->setCACert(rootCACertificate);
+        // client.setInsecure(); // TODO: set insecure to unencrypt packets for easier Wireshark sniffing
         HTTPClient http;
-        String serverPath = serverName + "/data";
+        String serverPath = serverName + "/data"; // The endpoint for updating dispenser data is serverName appended with /data.
 
         http.begin(*client, serverPath.c_str());
         http.addHeader("Content-Type", "application/json");   // POST payload is JSON
-#endif
 
         // update current liquid level
         const int currLiquidLevel = getCurrentLiquidLevel();
@@ -298,10 +282,9 @@ void loop() {
           String httpRequestData = JSON.stringify(dispenserStatus);
           Serial.println(httpRequestData);
 
-#ifndef ARDUINO_MODE
           int httpResponseCode = http.POST(httpRequestData);
 
-          if (httpResponseCode > 0) {
+          if (httpResponseCode == 200) {
             Serial.print("HTTP Response code: ");
             Serial.println(httpResponseCode);
             String payload = http.getString();
@@ -313,7 +296,6 @@ void loop() {
           }
 
           http.end();   // Free resources
-#endif
 
           lastPostTime = millis();
           // we just sent our level readings, reset numLevelErrors
@@ -322,10 +304,8 @@ void loop() {
           Serial.print("Error in Liquid level readings. Next run is Retry #");
           Serial.println(numLevelErrors);
         }
-#ifndef ARDUINO_MODE
       }
     }
-#endif
 
     Serial.println("");
   }

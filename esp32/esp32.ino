@@ -60,13 +60,13 @@ const int LEVEL_LOW = 1;
 const int LEVEL_MEDIUM = 2;
 const int LEVEL_HIGH = 3;
 
-const int LEVEL_LOW_PIN = 27;
-const int LEVEL_MEDIUM_PIN = 26;
-const int LEVEL_HIGH_PIN = 25;
+const int LEVEL_LOW_PIN = 26;
+const int LEVEL_MEDIUM_PIN = 25;
+const int LEVEL_HIGH_PIN = 33;
 
 const int LED_LOW_PIN = 13;
-const int LED_MEDIUM_PIN = 12;
-const int LED_HIGH_PIN = 14;
+const int LED_MEDIUM_PIN = 14;
+const int LED_HIGH_PIN = 27;
 unsigned long levelLedPin = -1;   // pin of LED which should be enabled
 
 // The amount of time an LED stays on (3 seconds per cycle)

@@ -78,14 +78,20 @@ Apart from accepting information from the embedded systems, this server monitors
 
 ## Rebuilding the Data Server
 
-To get a local build of the backend:
-
-```bash
-npm run build_backend
-```
-
 To deploy and update the current backend data to the live site (use this to suspend/modify the scheduled timeout handler):
 
 ```bash
 npm run deploy_backend
 ```
+
+## Running the Data Server locally
+
+To run the data server locally:
+
+```bash
+npm run deploy_localbackend
+```
+
+The API routes for the local server are:
+### 1. http://localhost:5000/data
+### 1. http://localhost:5000/new

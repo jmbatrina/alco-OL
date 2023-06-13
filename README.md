@@ -93,5 +93,5 @@ npm run deploy_localbackend
 ```
 
 The API routes for the local server are:
-### 1. http://localhost:5000/data
-### 1. http://localhost:5000/new
+1. http://localhost:5000/data
+2. http://localhost:5000/new

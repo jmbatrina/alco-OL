@@ -1,3 +1,6 @@
+// If using HTTP (e.g. via the local backend server), comment out the HTTPS_MODE definition below
+#define HTTPS_MODE
+
 #include <Arduino_JSON.h>
 
 #include <WiFi.h>
@@ -11,7 +14,12 @@ const int DISPENSER_ID = 1;
 const char* ssid = "alco-OL";
 const char* password = "stayhydrated145";
 
+#ifdef HTTPS_MODE
 String serverName = "https://alco-ol-backend.netlify.app/.netlify/functions/api";
+#else
+// IMPORTANT NOTE: Change the IP address to the IP of the computer running the server (NOT the gateway/hostpost connection)
+String serverName = "http://192.168.10.20:5000";
+#endif
 const char* rootCACertificate = \
 "-----BEGIN CERTIFICATE-----\n" \
 "MIIDrzCCApegAwIBAgIQCDvgVpBCRrGhdWrJWZHHSjANBgkqhkiG9w0BAQUFADBh\n" \
@@ -266,6 +274,7 @@ void loop() {
       Serial.println("WiFi Disconnected.");
       hasPostError = true;
     } else {
+#ifdef HTTPS_MODE
       // With a WiFi connection, we can now establish a secure HTTP connection with the backend server.
       // The secure connection is contained by a WiFiClientSecure instance
       WiFiClientSecure *client = new WiFiClientSecure;
@@ -277,10 +286,15 @@ void loop() {
         // so that the server can verify that the POST request is coming from a legitemate source (i.e. the dispenser)
         client->setCACert(rootCACertificate);
         // client.setInsecure(); // TODO: set insecure to unencrypt packets for easier Wireshark sniffing
+#endif
         HTTPClient http;
         String serverPath = serverName + "/data"; // The endpoint for updating dispenser data is serverName appended with /data.
 
+#ifdef HTTPS_MODE
         http.begin(*client, serverPath.c_str());
+#else
+        http.begin(serverPath.c_str());
+#endif
         http.addHeader("Content-Type", "application/json");   // POST payload is JSON
 
         // update current liquid level
@@ -341,7 +355,9 @@ void loop() {
           Serial.print("Error in Liquid level readings. Next run is Retry #");
           Serial.println(numLevelErrors);
         }
+#ifdef HTTPS_MODE
       }
+#endif
     }
 
     Serial.println("");

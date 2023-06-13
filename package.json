@@ -7,7 +7,8 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"build_backend": "netlify build",
-		"deploy_backend": "netlify deploy --prod"
+		"deploy_backend": "netlify deploy --prod",
+		"deploy_localbackend": "node api/functions/localapi.js"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^2.0.0",

@@ -42,11 +42,12 @@ async function updateLatest(DispenserID, Level, date, isActive=true){
 }
 
   // Adds new dispenser to collections
-async function addDispenser(DispenserID, Level, Location, Floor, date, isActive=true){
+async function addDispenser(DispenserID, Level, Location, Floor, date, x=0, y=0, isActive=true){
     const locRef = doc(db, LocationDB, 'Loc-'+DispenserID);
     const locEntry = {
       "Location": Location,
-      "Floor" : Floor
+      "Floor" : Floor,
+      "MapCoordinates" : [x,y]
     } 
     await setDoc(locRef, locEntry);
     await updateDispenser(DispenserID, Level, date, isActive);

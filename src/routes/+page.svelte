@@ -27,7 +27,7 @@
 <div class={`min-h-screen w-screen absolute text-center flex flex-wrap justify-center mt-20 ${innerWidth > 700 ? 'space-x-16' : ''}` }>
 
     <!--logo and title-->
-    <div class={`mt-10 bg-white drop-shadow-lg rounded-2xl bg-opacity-80 ${innerWidth > 700 ? 'min-w-[50%] max-h-[500px]' : 'w-72 h-full py-8'}`}>
+    <div class={`mt-10 bg-white drop-shadow-lg rounded-2xl bg-opacity-80 ${innerWidth > 700 ? 'min-w-[50%] max-h-[550px]' : 'w-72 h-full py-8'}`}>
     <div class={`flex justify-center`}><div class={`max-h-[400px] w-[600px]`}>
         <img src="../logo.png" alt="" class=""></div></div>
     <div>

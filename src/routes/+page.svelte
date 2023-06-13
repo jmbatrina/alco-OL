@@ -33,7 +33,8 @@
     <div>
         <h1 class={`text-4xl font-bold text-gray-800`}>Alco-OL</h1>
         <h1 class={`text-xl font-bold text-gray-600`}>CS 145 System Series Project</h1>
-        <h1 class={`text-s text-gray-600`}>a project that measures the content level and battery status of a sanitation dispenser and sends the data to the internet for easier maintenance operation</h1>
+        <h1 class={`text-s text-gray-600`}>a project that measures the content level and battery status of a sanitation dispenser</h1>
+        <h1 class={`text-s text-gray-600`}>and sends the data to the internet for easier maintenance operation</h1>
     </div>
     </div>
 

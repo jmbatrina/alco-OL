@@ -191,6 +191,8 @@ void setup() {
   Serial.println("");
   Serial.print("Connected to WiFi network with IP Address: ");
   Serial.println(WiFi.localIP());
+  Serial.print("Gateway IP: ");
+  Serial.println(WiFi.gatewayIP());
 
   isDispenserActive = getIsDispenserActive();
 }

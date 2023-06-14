@@ -104,6 +104,9 @@ const float ESP32_GPIO_VOLTAGE = 3.3;
 const int ESP32_ANALOG_MAX = 4096;
 bool isDispenserActive;
 
+// For resetting arduino when wifi is disconnected
+void(* resetFunc) (void) = 0;
+
 const int getCurrentLiquidLevel() {
   // Get readings for each level output pin
   // NOTE: For some unknown reason, the readings are inverted, so we invert the outputs
@@ -185,6 +188,12 @@ void setup() {
 
   Serial.begin(115200);
 
+  const int LED_PINS[] = {LED_LOW_PIN, LED_MEDIUM_PIN, LED_HIGH_PIN};
+  // Turn ALL lights on, indicating the we are not connected to WiFi yet
+  for (const int LED_PIN : LED_PINS) {
+    digitalWrite(LED_PIN, HIGH);
+  }
+
   WiFi.begin(ssid, password);
   Serial.print("Connecting to ");
   Serial.print(ssid);
@@ -197,6 +206,11 @@ void setup() {
   Serial.println(WiFi.localIP());
   Serial.print("Gateway IP: ");
   Serial.println(WiFi.gatewayIP());
+
+  // Turn ALL lights off, we are already connected to WiFi
+  for (const int LED_PIN : LED_PINS) {
+    digitalWrite(LED_PIN, LOW);
+  }
 
   isDispenserActive = getIsDispenserActive();
 }
@@ -291,6 +305,7 @@ void loop() {
     // Check WiFi connection status
     if (WiFi.status() != WL_CONNECTED) {
       Serial.println("WiFi Disconnected.");
+      resetFunc();
       hasPostError = true;
     } else {
 #ifdef HTTPS_MODE

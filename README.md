@@ -54,7 +54,8 @@ Request body:
 ```
 JSON {
     DispenserID: <string>,
-    Level:<int>
+    Level: <int>,
+    isActive: <bool>
 }
 ```
 
@@ -66,7 +67,8 @@ Request body:
 ```
 JSON {
     DispenserID: <string>,
-    Level:<int>
+    Level:<int>,
+    isActive: <bool>,
     Location: <string>,
     Floor: <int>,
     x : <int>,

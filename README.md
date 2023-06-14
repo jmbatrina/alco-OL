@@ -51,7 +51,7 @@ Receives `HTTP POST` pushes from dispensers to log new information.
 
 Route: `https://alco-ol-backend.netlify.app/.netlify/functions/api/data`
 Request body:
-```json
+```
 JSON {
     DispenserID: <string>,
     Level: <int>,
@@ -64,7 +64,7 @@ Receives `HTTP POST` pushes from unregistered dispensers to log new information 
 
 Route: `https://alco-ol-backend.netlify.app/.netlify/functions/api/new`
 Request body:
-```json
+```
 JSON {
     DispenserID: <string>,
     Level:<int>

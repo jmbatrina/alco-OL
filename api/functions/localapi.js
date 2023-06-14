@@ -37,14 +37,14 @@ app.post("/data", async (req, res) => {
 
 // Receives HTTP POST pushes from unregistered dispensers to log new information.
 // This can also be used to overwrite existing information about a dispenser
-// receives json body with fields {DispenserID, Level, Location, Floor, x, y}
+// receives json body with fields {DispenserID, Level, isActive, Location, Floor, x, y}
 app.post("/new", async (req, res) => {
     const date = new Date();
     var log = null;
     try {
-      const { DispenserID, Level, Location, Floor, x, y} = req.body;
+      const { DispenserID, Level, isActive, Location, Floor, x, y} = req.body;
   
-      await addDispenser(DispenserID,Level,Location,Floor,date,x,y);
+      await addDispenser(DispenserID,Level,Location,Floor,date,x,y, isActive);
       log = `[${date.toLocaleTimeString('en-US',{ timeZone: 'Asia/Manila' })}] Dispenser ${DispenserID} successfully registered.`
     } catch(e) {
       log = `[${date.toLocaleTimeString('en-US',{ timeZone: 'Asia/Manila' })}] Failed to register: ` + e;

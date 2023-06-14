@@ -119,7 +119,7 @@ async function getDispenserLogs(app, db, dispenserID) {
     let message = "";
     if (logEntry.status == "Inactive") {
       // TODO: use more informative error message
-      message = "Unit is Inactive";
+      message = "Unit is Inactive. Last Alcohol log is ";
       isPrevInactive = true;
       prevLevel = -1;
     } else {
@@ -128,7 +128,6 @@ async function getDispenserLogs(app, db, dispenserID) {
         isPrevInactive = false;
       }
 
-      const level = {1: 'Low', 2: 'Medium', 3: 'High', '-1': 'Unknown'}
       // TODO: use more informative log messages
       if (log.Level < prevLevel) {
         message += "Dropped to ";
@@ -137,10 +136,11 @@ async function getDispenserLogs(app, db, dispenserID) {
       } else {
         message += "Alcohol is at ";
       }
-
-      message += (level[log.Level] ?? "UNKNOWN") + " Level";
-      prevLevel = log.Level;
     }
+
+    const level = {1: 'Low', 2: 'Medium', 3: 'High', '-1': 'Unknown'}
+    message += (level[log.Level] ?? "UNKNOWN") + " Level";
+    prevLevel = log.Level;
 
     logEntry["message"] = message;
     logs.push(logEntry);

@@ -18,14 +18,14 @@ app.post("/data", async (req, res) => {
     const date = new Date();
     var log = null;
     try {
-        const { DispenserID, Level } = req.body;
+        const { DispenserID, Level, isActive } = req.body;
         // Update Dispenser collection if Level has changed
         const latestLevel = await getLatestField(DispenserID, "Level");
         if (Level != latestLevel) {
-        await updateDispenser(DispenserID, Level, date);
+        await updateDispenser(DispenserID, Level, date, isActive);
         }
         // Update DispenserLatest collection for most recent values
-        await updateLatest(DispenserID, Level, date);
+        await updateLatest(DispenserID, Level, date, isActive);
 
         log = `[${date.toLocaleTimeString({ timeZone: 'Asia/Manila' })}] Dispenser ${DispenserID} logged.`
     } catch(e) {

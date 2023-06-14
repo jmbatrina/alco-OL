@@ -52,7 +52,7 @@ const unsigned long postRetryDelay = 1000;
 unsigned long lastPostTime = 0;
 // Set timer to 3 seconds (3000ms) for debugging
 // TODO: Set to actual interval for deployment (e.g. 10 minutes)
-unsigned long postInterval = 2*1000;
+unsigned long postInterval = 3*1000;
 
 // NOTE: Pin 0 is connected to "Boot" button in ESP32
 const int BUTTON_PIN = 0;
@@ -84,8 +84,8 @@ const unsigned long ledOnInterval = 3*1000;
 const unsigned long ledCycleTime = ledOnDuration + ledOnInterval;
 unsigned long lastLedOnTime = 0;
 
-const unsigned long errorLedOnDuration = 2*1000;
-const unsigned long errorLedOnInterval = 3*1000;
+const unsigned long errorLedOnDuration = 1*1000;
+const unsigned long errorLedOnInterval = 2*1000;
 const unsigned long errorLedCycleTime = errorLedCycleTime + errorLedOnInterval;
 
 // When we get a -1 reading, retry for a few times before sending data

@@ -78,11 +78,15 @@ const int LED_HIGH_PIN = 27;
 unsigned long levelLedPin = -1;   // pin of LED which should be enabled
 
 // The amount of time an LED stays on (3 seconds per cycle)
-const int ledOnDuration = 3*1000;
+const unsigned long ledOnDuration = 3*1000;
 // Amount of time before LED turns on again (3 seconds)
-const int ledOnInterval = 3*1000;
-const int ledCycleTime = ledOnDuration + ledOnInterval;
-int lastLedOnTime = 0;
+const unsigned long ledOnInterval = 3*1000;
+const unsigned long ledCycleTime = ledOnDuration + ledOnInterval;
+unsigned long lastLedOnTime = 0;
+
+const unsigned long errorLedOnDuration = 3*1000;
+const unsigned long errorLedOnInterval = 2*1000;
+const unsigned long errorLedCycleTime = errorLedCycleTime + errorLedOnInterval;
 
 // When we get a -1 reading, retry for a few times before sending data
 const int LEVEL_ERROR_RETRY = 5;
@@ -216,16 +220,29 @@ void loop() {
   // NOTE: LED pin can be -1 if liquid level can not be properly determined
   if (levelLedPin != -1) {
     const PinStatus currLedState = digitalRead(levelLedPin);  // check if currentLed is ON or OFF
+
+
+    unsigned long cycleTime, onDuration;
+    if (isDispenserActive) {
+      // DRAGON'S DEN: For demonstration purposes, we don't blink the LED
+      // set cycleTime to 0 since LED should stay on (no cycle, just perpetually ON)
+      cycleTime = 0;
+      onDuration = ledOnDuration;
+    } else {
+      cycleTime = errorLedCycleTime;
+      onDuration = errorLedOnDuration;
+    }
+
     // if the LED has already blinked (turned ON and OFF for the specified amount of time) within the current LED cycle,
     // we start the next the next LED cycle by turning it ON
-    if (currLedState == LOW && (now - lastLedOnTime) >= ledCycleTime) {
+    if (currLedState == LOW && (now - lastLedOnTime) >= cycleTime) {
       // Start next LED cycle, turn on LED
       digitalWrite(levelLedPin, HIGH);
       lastLedOnTime = now;
       // else if LED is currently ON, then it means that it's in the middle of the LED cycle (just turned ON) and now
       // we check if the LED was already turned ON for the specified amount of time (3 sec in this case), then we turn it OFF
       // Note that this constitutes the next half of the LED cycle.
-    } else if (currLedState == HIGH && (now - lastLedOnTime) >= ledOnDuration) {
+    } else if (currLedState == HIGH && (now - lastLedOnTime) >= onDuration) {
       // LED already active for alloted time, turn off until next LED cycle
       digitalWrite(levelLedPin, LOW);
     }
